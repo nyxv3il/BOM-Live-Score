@@ -18,7 +18,7 @@ export default function AdminPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div
             className="neon-card p-8"
-            style={{ backgroundColor: "rgba(26, 13, 46, 0.4)" }}
+            style={{ backgroundColor: "rgba(255, 255, 255, 0.88)" }}
           >
             <h2
               className="text-2xl font-black mb-3"
@@ -34,7 +34,7 @@ export default function AdminPage() {
 
           <div
             className="neon-card p-8"
-            style={{ backgroundColor: "rgba(26, 13, 46, 0.4)" }}
+            style={{ backgroundColor: "rgba(255, 255, 255, 0.88)" }}
           >
             <h2
               className="text-2xl font-black mb-3"

@@ -25,7 +25,7 @@ export default function Login() {
       <form
         onSubmit={handleLogin}
         className="w-full max-w-md p-10 rounded-2xl neon-card"
-        style={{ backgroundColor: "rgba(26, 13, 46, 0.5)" }}
+        style={{ backgroundColor: "rgba(255, 255, 255, 0.9)" }}
       >
         <h2
           className="text-4xl font-black mb-2 neon-text text-center"
@@ -86,18 +86,18 @@ export default function Login() {
             className="w-full py-3 rounded-lg font-black text-lg uppercase tracking-wider transition-all duration-300 border-2 mt-8"
             style={{
               backgroundColor: "var(--primary)",
-              color: "#0f0a15",
+              color: "#fff",
               borderColor: "var(--primary)",
-              boxShadow: "0 0 20px rgba(255, 20, 147, 0.3)",
+              boxShadow: "0 0 20px rgba(128, 0, 32, 0.22)",
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.boxShadow =
-                "0 0 40px rgba(255, 20, 147, 0.6), inset 0 0 10px rgba(255, 20, 147, 0.3)";
+                "0 0 32px rgba(128, 0, 32, 0.35), inset 0 0 10px rgba(201, 151, 26, 0.22)";
               e.currentTarget.style.transform = "translateY(-2px)";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.boxShadow =
-                "0 0 20px rgba(255, 20, 147, 0.3)";
+                "0 0 20px rgba(128, 0, 32, 0.22)";
               e.currentTarget.style.transform = "translateY(0)";
             }}
           >

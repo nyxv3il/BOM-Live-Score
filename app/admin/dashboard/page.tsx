@@ -83,7 +83,7 @@ export default function AdminDashboard() {
 
         <div
           className="neon-card p-12"
-          style={{ backgroundColor: "rgba(26, 13, 46, 0.5)" }}
+          style={{ backgroundColor: "rgba(255, 255, 255, 0.9)" }}
         >
           <form className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -189,18 +189,18 @@ export default function AdminDashboard() {
               className="w-full py-4 font-black text-lg rounded-lg transition-all duration-300 uppercase tracking-widest border-2 mt-8"
               style={{
                 backgroundColor: "var(--primary)",
-                color: "#0f0a15",
+                color: "#fff",
                 borderColor: "var(--primary)",
-                boxShadow: "0 0 20px rgba(255, 20, 147, 0.3)",
+                boxShadow: "0 0 20px rgba(128, 0, 32, 0.22)",
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.boxShadow =
-                  "0 0 40px rgba(255, 20, 147, 0.6), inset 0 0 10px rgba(255, 20, 147, 0.3)";
+                  "0 0 32px rgba(128, 0, 32, 0.35), inset 0 0 10px rgba(201, 151, 26, 0.22)";
                 e.currentTarget.style.transform = "translateY(-2px)";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.boxShadow =
-                  "0 0 20px rgba(255, 20, 147, 0.3)";
+                  "0 0 20px rgba(128, 0, 32, 0.22)";
                 e.currentTarget.style.transform = "translateY(0)";
               }}
             >
