@@ -1,65 +1,214 @@
-import Image from "next/image";
+"use client";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 
-export default function Home() {
+interface MatchState {
+  id: number;
+  created_at: string;
+  team_a_name: string;
+  team_b_name: string;
+  batting_team: string;
+  runs: number;
+  wickets: number;
+  overs: number;
+  current_batsman: string | null;
+  current_bowler: string | null;
+  recent_balls: string | null;
+}
+
+export default function ScoreBoard() {
+  const [match, setMatch] = useState<MatchState | null>(null);
+
+  useEffect(() => {
+    // 1. Fetch initial data
+    const fetchScore = async () => {
+      const { data } = await supabase
+        .from("match_state")
+        .select("*")
+        .eq("id", 1)
+        .single();
+      if (data) setMatch(data as MatchState);
+    };
+    void fetchScore();
+
+    // 2. Subscribe to real-time changes
+    const channel = supabase
+      .channel("realtime:match_score")
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "match_state" },
+        (payload) => {
+          setMatch(payload.new as MatchState); // Update state instantly
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, []);
+
+  if (!match)
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div
+          className="text-4xl neon-text font-black"
+          style={{ color: "var(--primary)" }}
+        >
+          ⚡ Loading Match Data...
+        </div>
+      </div>
+    );
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="min-h-screen flex flex-col items-center justify-center py-16 px-4">
+      {/* Hero Section */}
+      <div className="text-center mb-12 max-w-2xl">
+        <p className="hero-subtitle">🏏 LIVE SCORECARD</p>
+        <h1 className="hero-title">
+          {match.team_a_name} <span className="highlight-purple">vs</span>{" "}
+          {match.team_b_name}
+        </h1>
+      </div>
+
+      {/* Floating Cards Container */}
+      <div className="w-full max-w-5xl">
+        {/* Score Display Card */}
+        <div
+          className="neon-card p-12 mb-8 text-center mx-auto"
+          style={{ backgroundColor: "rgba(26, 13, 46, 0.5)" }}
+        >
+          <p
+            className="text-xl mb-6 font-semibold tracking-widest uppercase"
+            style={{ color: "var(--primary)" }}
+          >
+            {match.batting_team.toUpperCase()} IS BATTING
+          </p>
+          <div
+            className="text-9xl font-black tracking-tighter neon-text mb-4"
+            style={{ color: "var(--primary)" }}
+          >
+            {match.runs}/{match.wickets}
+          </div>
+          <p className="text-4xl font-black" style={{ color: "var(--purple)" }}>
+            {match.overs} OVERS
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        {/* Info Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mx-auto">
+          {/* Team A Info */}
+          <div
+            className="neon-card p-8"
+            style={{ backgroundColor: "rgba(26, 13, 46, 0.4)" }}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            <div
+              className="text-sm font-bold uppercase tracking-widest mb-3"
+              style={{ color: "var(--primary)" }}
+            >
+              {match.team_a_name}
+            </div>
+            <div
+              className="text-5xl font-black"
+              style={{ color: "var(--foreground)" }}
+            >
+              {match.batting_team === match.team_a_name ? "●" : "◯"}
+            </div>
+            <p className="text-gray-400 mt-2 text-sm">Batting Status</p>
+          </div>
+
+          {/* Current Batsman */}
+          <div
+            className="neon-card p-8"
+            style={{ backgroundColor: "rgba(26, 13, 46, 0.4)" }}
           >
-            Documentation
-          </a>
+            <p
+              className="text-xs uppercase tracking-widest font-bold mb-3"
+              style={{ color: "var(--primary)" }}
+            >
+              ON STRIKE
+            </p>
+            <p
+              className="text-2xl font-bold neon-text"
+              style={{ color: "var(--primary)" }}
+            >
+              {match.current_batsman || "-"}
+            </p>
+            <p className="text-gray-400 mt-2 text-sm">Current Batsman</p>
+          </div>
+
+          {/* Bowler */}
+          <div
+            className="neon-card p-8"
+            style={{ backgroundColor: "rgba(26, 13, 46, 0.4)" }}
+          >
+            <p
+              className="text-xs uppercase tracking-widest font-bold mb-3"
+              style={{ color: "var(--purple)" }}
+            >
+              BOWLER
+            </p>
+            <p
+              className="text-2xl font-bold neon-text"
+              style={{ color: "var(--purple)" }}
+            >
+              {match.current_bowler || "-"}
+            </p>
+            <p className="text-gray-400 mt-2 text-sm">Current Bowler</p>
+          </div>
+
+          {/* Team B Info */}
+          <div
+            className="neon-card p-8"
+            style={{ backgroundColor: "rgba(26, 13, 46, 0.4)" }}
+          >
+            <div
+              className="text-sm font-bold uppercase tracking-widest mb-3"
+              style={{ color: "var(--purple)" }}
+            >
+              {match.team_b_name}
+            </div>
+            <div
+              className="text-5xl font-black"
+              style={{ color: "var(--foreground)" }}
+            >
+              {match.batting_team === match.team_b_name ? "●" : "◯"}
+            </div>
+            <p className="text-gray-400 mt-2 text-sm">Batting Status</p>
+          </div>
+
+          {/* Match Stats */}
+          <div
+            className="neon-card p-8 md:col-span-2 lg:col-span-2"
+            style={{ backgroundColor: "rgba(26, 13, 46, 0.4)" }}
+          >
+            <p
+              className="text-xs uppercase tracking-widest font-bold mb-4"
+              style={{ color: "var(--primary)" }}
+            >
+              RECENT BALLS
+            </p>
+            <div className="flex gap-3 flex-wrap">
+              {(match.recent_balls?.split(" ") || []).map(
+                (ball: string, i: number) => (
+                  <span
+                    key={i}
+                    className="px-4 py-2 rounded-lg text-sm font-bold font-mono border-2"
+                    style={{
+                      borderColor: "var(--primary)",
+                      color: "var(--primary)",
+                      backgroundColor: "rgba(255, 20, 147, 0.1)",
+                      textShadow: "0 0 8px rgba(255, 20, 147, 0.4)",
+                    }}
+                  >
+                    {ball}
+                  </span>
+                ),
+              )}
+            </div>
+          </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
