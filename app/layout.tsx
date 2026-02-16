@@ -22,8 +22,10 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${ibmPlexSans.variable} antialiased`}>
-        <Navbar />
-        {children}
+        <div className="app-shell min-h-screen">
+          <Navbar />
+          {children}
+        </div>
       </body>
     </html>
   );

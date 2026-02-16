@@ -20,7 +20,6 @@ export default function ScoreBoard() {
   const [match, setMatch] = useState<MatchState | null>(null);
 
   useEffect(() => {
-    // 1. Fetch initial data
     const fetchScore = async () => {
       const { data } = await supabase
         .from("match_state")
@@ -31,14 +30,13 @@ export default function ScoreBoard() {
     };
     void fetchScore();
 
-    // 2. Subscribe to real-time changes
     const channel = supabase
       .channel("realtime:match_score")
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "match_state" },
         (payload) => {
-          setMatch(payload.new as MatchState); // Update state instantly
+          setMatch(payload.new as MatchState);
         },
       )
       .subscribe();
@@ -48,166 +46,91 @@ export default function ScoreBoard() {
     };
   }, []);
 
-  if (!match)
+  if (!match) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div
-          className="text-4xl neon-text font-black"
-          style={{ color: "var(--primary)" }}
-        >
+      <div className="mx-auto flex min-h-[85vh] max-w-5xl items-center justify-center px-4">
+        <p className="text-center text-3xl font-bold text-pink-300 drop-shadow-[0_0_20px_rgba(255,73,132,0.8)]">
           ⚡ Loading Match Data...
-        </div>
+        </p>
       </div>
     );
+  }
+
+  const recentBalls = match.recent_balls?.split(" ").filter(Boolean) ?? [];
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center py-16 px-4">
-      {/* Hero Section */}
-      <div className="text-center mb-12 max-w-2xl">
-        <p className="hero-subtitle">🏏 LIVE SCORECARD</p>
-        <h1 className="hero-title">
-          {match.team_a_name} <span className="highlight-purple">vs</span>{" "}
-          {match.team_b_name}
+    <main className="mx-auto flex min-h-[85vh] w-full max-w-6xl flex-col items-center justify-center px-4 py-12 md:py-20">
+      <section className="mb-12 text-center md:mb-14">
+        <div className="hero-pill mb-6">🏏 live match center</div>
+        <h1 className="hero-heading mb-4">
+          <span className="gradient">
+            {match.team_a_name} vs {match.team_b_name}
+          </span>
         </h1>
-      </div>
-
-      {/* Floating Cards Container */}
-      <div className="w-full max-w-5xl">
-        {/* Score Display Card */}
-        <div
-          className="neon-card p-12 mb-8 text-center mx-auto"
-          style={{ backgroundColor: "rgba(26, 13, 46, 0.5)" }}
-        >
-          <p
-            className="text-xl mb-6 font-semibold tracking-widest uppercase"
-            style={{ color: "var(--primary)" }}
-          >
-            {match.batting_team.toUpperCase()} IS BATTING
-          </p>
-          <div
-            className="text-9xl font-black tracking-tighter neon-text mb-4"
-            style={{ color: "var(--primary)" }}
-          >
-            {match.runs}/{match.wickets}
-          </div>
-          <p className="text-4xl font-black" style={{ color: "var(--purple)" }}>
-            {match.overs} OVERS
-          </p>
+        <p className="mb-6 text-lg text-indigo-100/85 md:text-2xl">
+          Real-time cricket scoring with electric updates.
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <span className="meta-chip">🎯 Batting: {match.batting_team}</span>
+          <span className="meta-chip">⏱ Overs: {match.overs}</span>
+          <span className="meta-chip">📍 Live Feed</span>
         </div>
+      </section>
 
-        {/* Info Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mx-auto">
-          {/* Team A Info */}
-          <div
-            className="neon-card p-8"
-            style={{ backgroundColor: "rgba(26, 13, 46, 0.4)" }}
-          >
-            <div
-              className="text-sm font-bold uppercase tracking-widest mb-3"
-              style={{ color: "var(--primary)" }}
-            >
-              {match.team_a_name}
-            </div>
-            <div
-              className="text-5xl font-black"
-              style={{ color: "var(--foreground)" }}
-            >
-              {match.batting_team === match.team_a_name ? "●" : "◯"}
-            </div>
-            <p className="text-gray-400 mt-2 text-sm">Batting Status</p>
-          </div>
+      <section className="score-panel mb-8 w-full max-w-4xl p-8 text-center md:p-12">
+        <p className="mb-2 text-sm uppercase tracking-[0.22em] text-pink-300/90">
+          Current Score
+        </p>
+        <p className="mb-2 text-6xl font-black text-white drop-shadow-[0_0_18px_rgba(255,42,117,0.7)] md:text-8xl">
+          {match.runs}/{match.wickets}
+        </p>
+        <p className="text-xl font-semibold text-violet-200">{match.overs} overs</p>
+      </section>
 
-          {/* Current Batsman */}
-          <div
-            className="neon-card p-8"
-            style={{ backgroundColor: "rgba(26, 13, 46, 0.4)" }}
-          >
-            <p
-              className="text-xs uppercase tracking-widest font-bold mb-3"
-              style={{ color: "var(--primary)" }}
-            >
-              ON STRIKE
-            </p>
-            <p
-              className="text-2xl font-bold neon-text"
-              style={{ color: "var(--primary)" }}
-            >
-              {match.current_batsman || "-"}
-            </p>
-            <p className="text-gray-400 mt-2 text-sm">Current Batsman</p>
-          </div>
+      <section className="grid w-full max-w-5xl grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <article className="metric-card p-5">
+          <p className="mb-1 text-xs uppercase tracking-[0.2em] text-violet-200/80">Team A</p>
+          <h2 className="text-2xl font-bold">{match.team_a_name}</h2>
+          <p className="mt-2 text-sm text-indigo-100/75">
+            {match.batting_team === match.team_a_name ? "● Batting" : "◯ Fielding"}
+          </p>
+        </article>
 
-          {/* Bowler */}
-          <div
-            className="neon-card p-8"
-            style={{ backgroundColor: "rgba(26, 13, 46, 0.4)" }}
-          >
-            <p
-              className="text-xs uppercase tracking-widest font-bold mb-3"
-              style={{ color: "var(--purple)" }}
-            >
-              BOWLER
-            </p>
-            <p
-              className="text-2xl font-bold neon-text"
-              style={{ color: "var(--purple)" }}
-            >
-              {match.current_bowler || "-"}
-            </p>
-            <p className="text-gray-400 mt-2 text-sm">Current Bowler</p>
-          </div>
+        <article className="metric-card p-5">
+          <p className="mb-1 text-xs uppercase tracking-[0.2em] text-pink-200/80">On Strike</p>
+          <h2 className="text-2xl font-bold text-pink-200">{match.current_batsman || "-"}</h2>
+          <p className="mt-2 text-sm text-indigo-100/75">Current batsman</p>
+        </article>
 
-          {/* Team B Info */}
-          <div
-            className="neon-card p-8"
-            style={{ backgroundColor: "rgba(26, 13, 46, 0.4)" }}
-          >
-            <div
-              className="text-sm font-bold uppercase tracking-widest mb-3"
-              style={{ color: "var(--purple)" }}
-            >
-              {match.team_b_name}
-            </div>
-            <div
-              className="text-5xl font-black"
-              style={{ color: "var(--foreground)" }}
-            >
-              {match.batting_team === match.team_b_name ? "●" : "◯"}
-            </div>
-            <p className="text-gray-400 mt-2 text-sm">Batting Status</p>
-          </div>
+        <article className="metric-card p-5">
+          <p className="mb-1 text-xs uppercase tracking-[0.2em] text-violet-200/80">Bowler</p>
+          <h2 className="text-2xl font-bold text-violet-200">{match.current_bowler || "-"}</h2>
+          <p className="mt-2 text-sm text-indigo-100/75">Current bowler</p>
+        </article>
 
-          {/* Match Stats */}
-          <div
-            className="neon-card p-8 md:col-span-2 lg:col-span-2"
-            style={{ backgroundColor: "rgba(26, 13, 46, 0.4)" }}
-          >
-            <p
-              className="text-xs uppercase tracking-widest font-bold mb-4"
-              style={{ color: "var(--primary)" }}
-            >
-              RECENT BALLS
-            </p>
-            <div className="flex gap-3 flex-wrap">
-              {(match.recent_balls?.split(" ") || []).map(
-                (ball: string, i: number) => (
-                  <span
-                    key={i}
-                    className="px-4 py-2 rounded-lg text-sm font-bold font-mono border-2"
-                    style={{
-                      borderColor: "var(--primary)",
-                      color: "var(--primary)",
-                      backgroundColor: "rgba(255, 20, 147, 0.1)",
-                      textShadow: "0 0 8px rgba(255, 20, 147, 0.4)",
-                    }}
-                  >
-                    {ball}
-                  </span>
-                ),
-              )}
+        <article className="metric-card p-5 md:col-span-2 lg:col-span-3">
+          <p className="mb-3 text-xs uppercase tracking-[0.2em] text-pink-200/80">Recent Balls</p>
+          {recentBalls.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {recentBalls.map((ball, i) => (
+                <span key={`${ball}-${i}`} className="ball-chip">
+                  {ball}
+                </span>
+              ))}
             </div>
-          </div>
-        </div>
+          ) : (
+            <p className="text-sm text-indigo-100/70">No recent deliveries yet.</p>
+          )}
+        </article>
+      </section>
+
+      <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+        <button className="cta-btn" type="button">
+          Register Team
+        </button>
+        <button className="cta-btn secondary" type="button">
+          Learn More
+        </button>
       </div>
     </main>
   );
