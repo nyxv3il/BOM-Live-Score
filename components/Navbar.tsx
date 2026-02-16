@@ -2,33 +2,17 @@ import Link from "next/link";
 
 export default function Navbar() {
   return (
-    <nav
-      className="p-6 border-b-2"
-      style={{
-        backgroundColor: "rgba(26, 13, 46, 0.6)",
-        borderBottomColor: "#ff1493",
-        boxShadow:
-          "0 0 30px rgba(255, 20, 147, 0.25), inset 0 0 20px rgba(255, 20, 147, 0.05)",
-        backdropFilter: "blur(10px)",
-      }}
-    >
-      <div className="container mx-auto flex justify-between items-center">
-        <Link
-          href="/"
-          className="text-3xl font-black neon-text tracking-widest"
-          style={{ color: "#ff1493" }}
-        >
-          LIVESCORE
+    <nav className="nav-shell">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+        <Link href="/" className="brand">
+          LiveScore<span className="text-white">.io</span>
         </Link>
-        <div className="space-x-12 flex">
-          <Link href="/" className="nav-link font-bold text-base">
-            HOME
+        <div className="flex items-center gap-8">
+          <Link href="/" className="nav-link">
+            Home
           </Link>
-          <Link
-            href="/admin/dashboard"
-            className="nav-link font-bold text-base"
-          >
-            ADMIN PANEL
+          <Link href="/admin/dashboard" className="nav-link">
+            Admin
           </Link>
         </div>
       </div>
