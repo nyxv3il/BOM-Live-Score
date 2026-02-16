@@ -5,7 +5,7 @@ export default function Navbar() {
     <nav className="nav-shell">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <Link href="/" className="brand">
-          LiveScore<span className="text-white">.io</span>
+          LiveScore<span className="text-[color:var(--text)]">.io</span>
         </Link>
         <div className="flex items-center gap-8">
           <Link href="/" className="nav-link">

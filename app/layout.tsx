@@ -10,8 +10,8 @@ const ibmPlexSans = IBM_Plex_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Live Score App - Neon Maroon & Silver",
-  description: "A modern live score app with a neon maroon and silver theme.",
+  title: "Live Score App - Light Maroon & Gold",
+  description: "A modern live score app with a light maroon and gold theme.",
 };
 
 export default function RootLayout({
@@ -20,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <body className={`${ibmPlexSans.variable} antialiased`}>
         <div className="app-shell min-h-screen">
           <Navbar />
