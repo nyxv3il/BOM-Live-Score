@@ -1,10 +1,10 @@
 "use client";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
-import Cookies from "js-cookie"; // install this: npm i js-cookie
+import Cookies from "js-cookie";
 
-export default function Login() {
+function LoginForm() {
   const [username, setUser] = useState("");
   const [password, setPass] = useState("");
   const router = useRouter();
@@ -108,5 +108,13 @@ export default function Login() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function Login() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   );
 }
