@@ -29,10 +29,11 @@ export default function SummaryPage() {
   const [players, setPlayers] = useState<PlayerRow[]>(supabase ? [] : fallbackRows);
 
   useEffect(() => {
-    if (!supabase) return;
+    const client = supabase;
+    if (!client) return;
 
     const fetchPlayers = async () => {
-      const { data } = await supabase
+      const { data } = await client
         .from("player_scores")
         .select("*")
         .order("team_name", { ascending: true })

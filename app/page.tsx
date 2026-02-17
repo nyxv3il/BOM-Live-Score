@@ -76,10 +76,11 @@ export default function ScoreBoard() {
   const [match, setMatch] = useState<MatchState | null>(supabase ? null : fallbackMatch);
 
   useEffect(() => {
-    if (!supabase) return;
+    const client = supabase;
+    if (!client) return;
 
     const fetchScore = async () => {
-      const { data } = await supabase
+      const { data } = await client
         .from("match_state")
         .select("*")
         .eq("id", 1)
@@ -89,7 +90,7 @@ export default function ScoreBoard() {
     };
     void fetchScore();
 
-    const channel = supabase
+    const channel = client
       .channel("realtime:match_score")
       .on(
         "postgres_changes",
@@ -101,7 +102,7 @@ export default function ScoreBoard() {
       .subscribe();
 
     return () => {
-      void supabase.removeChannel(channel);
+      void client.removeChannel(channel);
     };
   }, []);
 
