@@ -64,33 +64,36 @@ export default function SummaryPage() {
         {Object.entries(grouped).map(([team, rows]) => (
           <article className="rounded-2xl border border-[color:var(--border)] bg-white/70 p-4 shadow-sm" key={team}>
             <h2 className="mb-4 text-2xl font-bold text-[color:var(--primary)]">{team} Player Scores</h2>
-            <div className="overflow-x-auto">
-              <table className="min-w-full overflow-hidden rounded-xl border border-[color:var(--border)] bg-white/85">
+            <p className="mb-2 text-xs font-medium text-[color:var(--muted)] md:hidden">
+              Swipe sideways to view all columns.
+            </p>
+            <div className="w-full max-w-full overflow-x-auto">
+              <table className="min-w-[760px] overflow-hidden rounded-xl border border-[color:var(--border)] bg-white/85 text-sm">
                 <thead className="bg-[color:var(--primary)] text-left text-white">
                   <tr>
-                    <th className="px-4 py-3">Player</th>
-                    <th className="px-4 py-3">Runs</th>
-                    <th className="px-4 py-3">Balls</th>
-                    <th className="px-4 py-3">4s</th>
-                    <th className="px-4 py-3">6s</th>
-                    <th className="px-4 py-3">SR</th>
-                    <th className="px-4 py-3">Wkts</th>
-                    <th className="px-4 py-3">Overs</th>
-                    <th className="px-4 py-3">Econ</th>
+                    <th className="px-3 py-2.5 md:px-4 md:py-3">Player</th>
+                    <th className="px-3 py-2.5 md:px-4 md:py-3">Runs</th>
+                    <th className="px-3 py-2.5 md:px-4 md:py-3">Balls</th>
+                    <th className="px-3 py-2.5 md:px-4 md:py-3">4s</th>
+                    <th className="px-3 py-2.5 md:px-4 md:py-3">6s</th>
+                    <th className="px-3 py-2.5 md:px-4 md:py-3">SR</th>
+                    <th className="px-3 py-2.5 md:px-4 md:py-3">Wkts</th>
+                    <th className="px-3 py-2.5 md:px-4 md:py-3">Overs</th>
+                    <th className="px-3 py-2.5 md:px-4 md:py-3">Econ</th>
                   </tr>
                 </thead>
                 <tbody>
                   {rows.map((player) => (
                     <tr key={player.id} className="border-t border-[color:var(--border)]/70">
-                      <td className="px-4 py-3 font-semibold">{player.player_name}</td>
-                      <td className="px-4 py-3">{player.runs}</td>
-                      <td className="px-4 py-3">{player.balls}</td>
-                      <td className="px-4 py-3">{player.fours}</td>
-                      <td className="px-4 py-3">{player.sixes}</td>
-                      <td className="px-4 py-3">{player.strike_rate}</td>
-                      <td className="px-4 py-3">{player.wickets}</td>
-                      <td className="px-4 py-3">{player.overs}</td>
-                      <td className="px-4 py-3">{player.economy}</td>
+                      <td className="px-3 py-2.5 font-semibold md:px-4 md:py-3">{player.player_name}</td>
+                      <td className="px-3 py-2.5 md:px-4 md:py-3">{player.runs}</td>
+                      <td className="px-3 py-2.5 md:px-4 md:py-3">{player.balls}</td>
+                      <td className="px-3 py-2.5 md:px-4 md:py-3">{player.fours}</td>
+                      <td className="px-3 py-2.5 md:px-4 md:py-3">{player.sixes}</td>
+                      <td className="px-3 py-2.5 md:px-4 md:py-3">{player.strike_rate}</td>
+                      <td className="px-3 py-2.5 md:px-4 md:py-3">{player.wickets}</td>
+                      <td className="px-3 py-2.5 md:px-4 md:py-3">{player.overs}</td>
+                      <td className="px-3 py-2.5 md:px-4 md:py-3">{player.economy}</td>
                     </tr>
                   ))}
                 </tbody>
