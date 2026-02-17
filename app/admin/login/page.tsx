@@ -24,7 +24,7 @@ function LoginForm() {
     // Simple client-side check for demo. In production, use a Server Action.
     // We are matching against values you can hardcode here or fetch from an API.
     if (username === "bomadmin" && password === "epstein") {
-      Cookies.set("admin_session", "true");
+      Cookies.set("admin_session", "true", { path: "/" });
       router.push(redirectTarget);
     } else {
       alert("Invalid credentials");
