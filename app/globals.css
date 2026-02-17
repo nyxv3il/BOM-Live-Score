@@ -18,6 +18,23 @@
   --radius: 18px;
 }
 
+:root[data-theme="dark"] {
+  --bg-top: #12060d;
+  --bg-bottom: #1d0f17;
+  --panel: rgba(36, 22, 30, 0.88);
+  --panel-strong: rgba(30, 18, 25, 0.96);
+  --border: rgba(201, 151, 26, 0.34);
+  --text: #f7e6d2;
+  --muted: #d0b39a;
+  --primary: #f2b7c6;
+  --primary-glow: rgba(242, 183, 198, 0.2);
+  --accent: #f7cad6;
+  --gold: #e6bf62;
+  --purple: #d5a0b1;
+  --silver: #cfb6bf;
+  --input: #2a1822;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -197,4 +214,41 @@ a {
 
 .neon-text {
   text-shadow: 0 6px 18px rgba(128, 0, 32, 0.18);
+}
+
+:root[data-theme="dark"] body {
+  background:
+    radial-gradient(circle at 14% 76%, rgba(242, 183, 198, 0.08), transparent 32%),
+    radial-gradient(circle at 88% 24%, rgba(230, 191, 98, 0.2), transparent 36%),
+    linear-gradient(130deg, var(--bg-top) 0%, #1a0d15 52%, var(--bg-bottom) 100%);
+}
+
+:root[data-theme="dark"] .nav-shell {
+  border-bottom-color: rgba(230, 191, 98, 0.2);
+  background: rgba(16, 8, 13, 0.9);
+}
+
+:root[data-theme="dark"] .nav-link {
+  color: #f3d7bf;
+}
+
+:root[data-theme="dark"] .score-panel {
+  background: linear-gradient(155deg, rgba(39, 22, 30, 0.96) 0%, rgba(48, 27, 37, 0.9) 100%);
+  box-shadow:
+    0 14px 42px rgba(0, 0, 0, 0.34),
+    0 0 0 1px rgba(230, 191, 98, 0.18) inset;
+}
+
+:root[data-theme="dark"] .metric-card,
+:root[data-theme="dark"] .neon-card {
+  border-color: rgba(230, 191, 98, 0.24);
+  background: rgba(39, 23, 31, 0.92);
+}
+
+:root[data-theme="dark"] .ball-chip,
+:root[data-theme="dark"] .meta-chip,
+:root[data-theme="dark"] .hero-pill {
+  border-color: rgba(230, 191, 98, 0.4);
+  background: rgba(54, 31, 41, 0.92);
+  color: #f5ddc7;
 }
