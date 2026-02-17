@@ -16,11 +16,16 @@ export default function Navbar() {
           <Link href="/" className="nav-link">
             Home
           </Link>
+          <Link href="/summary" className="nav-link">
+            Summary
+          </Link>
+          <Link href="/credits" className="nav-link">
+            Credits
+          </Link>
           <Link href="/admin/dashboard" className="nav-link">
             Admin
           </Link>
         </div>
-        {/* Hamburger Menu Button (visible on small screens) */}
         <div className="md:hidden">
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -51,12 +56,17 @@ export default function Navbar() {
           </button>
         </div>
       </div>
-      {/* Mobile Menu (shown when isMenuOpen is true) */}
       {isMenuOpen && (
         <div className="md:hidden">
           <div className="flex flex-col gap-4 px-6 pb-4">
             <Link href="/" className="nav-link">
               Home
+            </Link>
+            <Link href="/summary" className="nav-link">
+              Summary
+            </Link>
+            <Link href="/credits" className="nav-link">
+              Credits
             </Link>
             <Link href="/admin/dashboard" className="nav-link">
               Admin
