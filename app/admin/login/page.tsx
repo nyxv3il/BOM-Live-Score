@@ -1,14 +1,23 @@
 "use client";
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
-import Cookies from "js-cookie"; // install this: npm i js-cookie
+import Cookies from "js-cookie";
 
-export default function Login() {
+function LoginForm() {
   const [username, setUser] = useState("");
   const [password, setPass] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  const redirectTarget = searchParams.get("next") || "/admin/dashboard";
+
+  useEffect(() => {
+    const adminSession = Cookies.get("admin_session");
+    if (adminSession === "true") {
+      router.replace(redirectTarget);
+    }
+  }, [redirectTarget, router]);
 
   const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -16,7 +25,7 @@ export default function Login() {
     // We are matching against values you can hardcode here or fetch from an API.
     if (username === "bomadmin" && password === "epstein") {
       Cookies.set("admin_session", "true");
-      router.push(searchParams.get("next") || "/admin/dashboard");
+      router.push(redirectTarget);
     } else {
       alert("Invalid credentials");
     }
@@ -108,5 +117,13 @@ export default function Login() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function Login() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   );
 }
