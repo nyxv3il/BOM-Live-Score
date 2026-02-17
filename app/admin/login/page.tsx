@@ -1,12 +1,14 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Cookies from "js-cookie"; // install this: npm i js-cookie
 
 export default function Login() {
   const [username, setUser] = useState("");
   const [password, setPass] = useState("");
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -14,7 +16,7 @@ export default function Login() {
     // We are matching against values you can hardcode here or fetch from an API.
     if (username === "bomadmin" && password === "epstein") {
       Cookies.set("admin_session", "true");
-      router.push("/admin/dashboard");
+      router.push(searchParams.get("next") || "/admin/dashboard");
     } else {
       alert("Invalid credentials");
     }
