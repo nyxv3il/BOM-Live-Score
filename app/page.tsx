@@ -61,6 +61,8 @@ export default function ScoreBoard() {
     );
   }
 
+  const runRate =
+    match.overs > 0 ? (match.runs / match.overs).toFixed(2) : "0.00";
   const recentBalls = match.recent_balls?.split(" ").filter(Boolean) ?? [];
 
   return (
@@ -79,13 +81,16 @@ export default function ScoreBoard() {
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3">
           <span className="meta-chip">
+            <i className="fas fa-wifi"></i> Live Feed
+          </span>
+          <span className="meta-chip">
             <i className="fas fa-location"></i> Batting: {match.batting_team}
           </span>
           <span className="meta-chip">
             <i className="fas fa-baseball"></i> Overs: {match.overs}
           </span>
           <span className="meta-chip">
-            <i className="fas fa-wifi"></i> Live Feed
+            <i className="fas fa-tachometer-alt"></i> Run Rate: {runRate}
           </span>
         </div>
       </section>
