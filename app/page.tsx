@@ -14,6 +14,11 @@ interface MatchState {
   current_batsman: string | null;
   current_bowler: string | null;
   recent_balls: string | null;
+  non_striker: string | null;
+  partnership: string | null;
+  current_batsman_stats: string | null;
+  non_striker_stats: string | null;
+  current_bowler_stats: string | null;
 }
 
 export default function ScoreBoard() {
@@ -110,7 +115,19 @@ export default function ScoreBoard() {
             {match.current_batsman || "-"}
           </h2>
           <p className="mt-2 text-sm text-[color:var(--muted)]/80">
-            Current batsman
+            {match.current_batsman_stats || "-"}
+          </p>
+        </article>
+
+        <article className="metric-card p-5">
+          <p className="mb-1 text-xs uppercase tracking-[0.2em] text-[color:var(--muted)]/80">
+            Non-Striker
+          </p>
+          <h2 className="text-2xl font-bold text-[color:var(--muted)]">
+            {match.non_striker || "-"}
+          </h2>
+          <p className="mt-2 text-sm text-[color:var(--muted)]/80">
+            {match.non_striker_stats || "-"}
           </p>
         </article>
 
@@ -122,7 +139,19 @@ export default function ScoreBoard() {
             {match.current_bowler || "-"}
           </h2>
           <p className="mt-2 text-sm text-[color:var(--muted)]/80">
-            Current bowler
+            {match.current_bowler_stats || "-"}
+          </p>
+        </article>
+
+        <article className="metric-card p-5">
+          <p className="mb-1 text-xs uppercase tracking-[0.2em] text-[color:var(--muted)]/80">
+            Partnership
+          </p>
+          <h2 className="text-2xl font-bold text-[color:var(--muted)]">
+            {match.partnership || "-"}
+          </h2>
+          <p className="mt-2 text-sm text-[color:var(--muted)]/80">
+            Current partnership
           </p>
         </article>
 

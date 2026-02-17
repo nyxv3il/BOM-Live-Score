@@ -14,6 +14,11 @@ interface MatchState {
   current_batsman: string;
   current_bowler: string;
   batting_team: string;
+  non_striker: string;
+  partnership: string;
+  current_batsman_stats: string;
+  non_striker_stats: string;
+  current_bowler_stats: string;
 }
 
 export default function AdminDashboard() {
@@ -143,9 +148,6 @@ export default function AdminDashboard() {
                   style={inputStyles}
                 />
               </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
                 <label style={labelStyles}>Overs</label>
                 <input
@@ -153,17 +155,6 @@ export default function AdminDashboard() {
                   type="number"
                   step="0.1"
                   value={match.overs || 0}
-                  onChange={handleChange}
-                  className="focus:outline-none transition-all"
-                  style={inputStyles}
-                />
-              </div>
-              <div>
-                <label style={labelStyles}>Recent Balls (1 4 W)</label>
-                <input
-                  name="recent_balls"
-                  type="text"
-                  value={match.recent_balls || ""}
                   onChange={handleChange}
                   className="focus:outline-none transition-all"
                   style={inputStyles}
@@ -194,6 +185,77 @@ export default function AdminDashboard() {
                   style={inputStyles}
                 />
               </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div>
+                <label style={labelStyles}>Non-Striker</label>
+                <input
+                  name="non_striker"
+                  type="text"
+                  value={match.non_striker || ""}
+                  onChange={handleChange}
+                  className="focus:outline-none transition-all"
+                  style={inputStyles}
+                />
+              </div>
+              <div>
+                <label style={labelStyles}>Partnership</label>
+                <input
+                  name="partnership"
+                  type="number"
+                  value={match.partnership || ""}
+                  onChange={handleChange}
+                  className="focus:outline-none transition-all"
+                  style={inputStyles}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label style={labelStyles}>Recent Balls (1 4 W)</label>
+              <input
+                name="recent_balls"
+                type="text"
+                value={match.recent_balls || ""}
+                onChange={handleChange}
+                className="focus:outline-none transition-all"
+                style={inputStyles}
+              />
+            </div>
+
+            <div>
+              <label style={labelStyles}>Current Batsman Stats</label>
+              <input
+                name="current_batsman_stats"
+                type="text"
+                value={match.current_batsman_stats || ""}
+                onChange={handleChange}
+                className="focus:outline-none transition-all"
+                style={inputStyles}
+              />
+            </div>
+            <div>
+              <label style={labelStyles}>Non-Striker Stats</label>
+              <input
+                name="non_striker_stats"
+                type="text"
+                value={match.non_striker_stats || ""}
+                onChange={handleChange}
+                className="focus:outline-none transition-all"
+                style={inputStyles}
+              />
+            </div>
+            <div>
+              <label style={labelStyles}>Current Bowler Stats</label>
+              <input
+                name="current_bowler_stats"
+                type="text"
+                value={match.current_bowler_stats || ""}
+                onChange={handleChange}
+                className="focus:outline-none transition-all"
+                style={inputStyles}
+              />
             </div>
 
             <button

@@ -25,10 +25,10 @@ function LoginForm() {
     // We are matching against values you can hardcode here or fetch from an API.
     if (username === "bomadmin" && password === "epstein") {
       // Set cookie with secure attributes for production
-      Cookies.set("admin_session", "true", { 
+      Cookies.set("admin_session", "true", {
         path: "/",
-        secure: window.location.protocol === 'https:',
-        sameSite: 'strict'
+        secure: window.location.protocol === "https:",
+        sameSite: "strict",
       });
       router.push(redirectTarget);
     } else {
