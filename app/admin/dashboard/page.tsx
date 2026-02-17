@@ -36,6 +36,10 @@ interface MatchState {
   match_3_time: string;
   match_3_venue: string;
   match_3_format: string;
+  match_4_date: string;
+  match_4_time: string;
+  match_4_venue: string;
+  match_4_format: string;
 }
 
 interface PlayerScore {
@@ -82,6 +86,10 @@ const defaultMatch: MatchState = {
   match_3_time: "",
   match_3_venue: "",
   match_3_format: "",
+  match_4_date: "",
+  match_4_time: "",
+  match_4_venue: "",
+  match_4_format: "",
 };
 
 const newPlayerRow: PlayerScore = {
@@ -109,7 +117,11 @@ export default function AdminDashboard() {
 
       const [{ data: matchData }, { data: playersData }] = await Promise.all([
         supabase.from("match_state").select("*").eq("id", 1).single(),
-        supabase.from("player_scores").select("*").order("team_name", { ascending: true }).order("player_name", { ascending: true }),
+        supabase
+          .from("player_scores")
+          .select("*")
+          .order("team_name", { ascending: true })
+          .order("player_name", { ascending: true }),
       ]);
 
       if (matchData) setMatch(matchData as MatchState);
@@ -123,16 +135,39 @@ export default function AdminDashboard() {
     }
   }, [router]);
 
-  const handleMatchChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleMatchChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     const { name, value } = e.target;
     const numeric = ["runs", "wickets", "overs"];
-    setMatch((prev) => ({ ...prev, [name]: numeric.includes(name) ? Number(value) : value } as MatchState));
+    setMatch(
+      (prev) =>
+        ({
+          ...prev,
+          [name]: numeric.includes(name) ? Number(value) : value,
+        }) as MatchState,
+    );
   };
 
-  const handlePlayerChange = (index: number, key: keyof PlayerScore, value: string) => {
-    const numericKeys: (keyof PlayerScore)[] = ["runs", "balls", "fours", "sixes", "strike_rate", "wickets", "overs", "economy"];
+  const handlePlayerChange = (
+    index: number,
+    key: keyof PlayerScore,
+    value: string,
+  ) => {
+    const numericKeys: (keyof PlayerScore)[] = [
+      "runs",
+      "balls",
+      "fours",
+      "sixes",
+      "strike_rate",
+      "wickets",
+      "overs",
+      "economy",
+    ];
     const parsed = numericKeys.includes(key) ? Number(value) : value;
-    setPlayers((prev) => prev.map((p, i) => (i === index ? { ...p, [key]: parsed } : p)));
+    setPlayers((prev) =>
+      prev.map((p, i) => (i === index ? { ...p, [key]: parsed } : p)),
+    );
   };
 
   const saveMatch = async () => {
@@ -141,7 +176,10 @@ export default function AdminDashboard() {
       return;
     }
 
-    const { error } = await supabase.from("match_state").update(match).eq("id", 1);
+    const { error } = await supabase
+      .from("match_state")
+      .update(match)
+      .eq("id", 1);
     if (error) {
       alert("Error updating match info.");
       return;
@@ -159,16 +197,25 @@ export default function AdminDashboard() {
     if (player.id) {
       await supabase.from("player_scores").update(player).eq("id", player.id);
     } else {
-      const { data } = await supabase.from("player_scores").insert(player).select("*").single();
+      const { data } = await supabase
+        .from("player_scores")
+        .insert(player)
+        .select("*")
+        .single();
       if (data) {
-        setPlayers((prev) => prev.map((p) => (p === player ? (data as PlayerScore) : p)));
+        setPlayers((prev) =>
+          prev.map((p) => (p === player ? (data as PlayerScore) : p)),
+        );
       }
     }
   };
 
   const deletePlayer = async (id?: number) => {
     if (!supabase || !id) return;
-    const { error } = await supabase.from("player_scores").delete().eq("id", id);
+    const { error } = await supabase
+      .from("player_scores")
+      .delete()
+      .eq("id", id);
     if (!error) setPlayers((prev) => prev.filter((p) => p.id !== id));
   };
 
@@ -208,15 +255,29 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen py-10 px-4">
       <div className="mx-auto w-full max-w-6xl space-y-8">
-        <h1 className="text-5xl font-black mb-2 neon-text text-center" style={{ color: "var(--primary)" }}>
+        <h1
+          className="text-5xl font-black mb-2 neon-text text-center"
+          style={{ color: "var(--primary)" }}
+        >
           <i className="fas fa-baseball"></i> ADMIN PANEL
         </h1>
 
-        <div className="neon-card p-8" style={{ backgroundColor: "rgba(255, 255, 255, 0.9)" }}>
-          <h2 className="mb-6 text-2xl font-black" style={{ color: "var(--primary)" }}>Match + Timeline Details</h2>
+        <div
+          className="neon-card p-8"
+          style={{ backgroundColor: "rgba(255, 255, 255, 0.9)" }}
+        >
+          <h2
+            className="mb-6 text-2xl font-black"
+            style={{ color: "var(--primary)" }}
+          >
+            Match + Timeline Details
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {Object.entries(match).map(([key, value]) => (
-              <div key={key} className={key === "match_description" ? "md:col-span-2" : ""}>
+              <div
+                key={key}
+                className={key === "match_description" ? "md:col-span-2" : ""}
+              >
                 <label style={labelStyles}>{key.replaceAll("_", " ")}</label>
                 {key === "match_description" ? (
                   <textarea
@@ -239,13 +300,30 @@ export default function AdminDashboard() {
               </div>
             ))}
           </div>
-          <button onClick={saveMatch} className="mt-6 cta-btn">Save Match Info</button>
+          <button onClick={saveMatch} className="mt-6 cta-btn">
+            Save Match Info
+          </button>
         </div>
 
-        <div className="neon-card p-8" style={{ backgroundColor: "rgba(255, 255, 255, 0.9)" }}>
+        <div
+          className="neon-card p-8"
+          style={{ backgroundColor: "rgba(255, 255, 255, 0.9)" }}
+        >
           <div className="mb-5 flex items-center justify-between">
-            <h2 className="text-2xl font-black" style={{ color: "var(--primary)" }}>Player Score Tables</h2>
-            <button className="cta-btn secondary" onClick={() => setPlayers((prev) => [...prev, { ...newPlayerRow }])}>Add Player</button>
+            <h2
+              className="text-2xl font-black"
+              style={{ color: "var(--primary)" }}
+            >
+              Player Score Tables
+            </h2>
+            <button
+              className="cta-btn secondary"
+              onClick={() =>
+                setPlayers((prev) => [...prev, { ...newPlayerRow }])
+              }
+            >
+              Add Player
+            </button>
           </div>
 
           <div className="overflow-x-auto">
@@ -265,26 +343,140 @@ export default function AdminDashboard() {
                     "Economy",
                     "Actions",
                   ].map((h) => (
-                    <th key={h} className="px-3 py-2 text-left">{h}</th>
+                    <th key={h} className="px-3 py-2 text-left">
+                      {h}
+                    </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {players.map((player, index) => (
-                  <tr key={player.id ?? `new-${index}`} className="border-t border-[color:var(--border)] bg-white/70">
-                    <td className="p-2"><input style={inputStyles} value={player.team_name} onChange={(e) => handlePlayerChange(index, "team_name", e.target.value)} /></td>
-                    <td className="p-2"><input style={inputStyles} value={player.player_name} onChange={(e) => handlePlayerChange(index, "player_name", e.target.value)} /></td>
-                    <td className="p-2"><input type="number" style={inputStyles} value={player.runs} onChange={(e) => handlePlayerChange(index, "runs", e.target.value)} /></td>
-                    <td className="p-2"><input type="number" style={inputStyles} value={player.balls} onChange={(e) => handlePlayerChange(index, "balls", e.target.value)} /></td>
-                    <td className="p-2"><input type="number" style={inputStyles} value={player.fours} onChange={(e) => handlePlayerChange(index, "fours", e.target.value)} /></td>
-                    <td className="p-2"><input type="number" style={inputStyles} value={player.sixes} onChange={(e) => handlePlayerChange(index, "sixes", e.target.value)} /></td>
-                    <td className="p-2"><input type="number" step="0.01" style={inputStyles} value={player.strike_rate} onChange={(e) => handlePlayerChange(index, "strike_rate", e.target.value)} /></td>
-                    <td className="p-2"><input type="number" style={inputStyles} value={player.wickets} onChange={(e) => handlePlayerChange(index, "wickets", e.target.value)} /></td>
-                    <td className="p-2"><input type="number" step="0.1" style={inputStyles} value={player.overs} onChange={(e) => handlePlayerChange(index, "overs", e.target.value)} /></td>
-                    <td className="p-2"><input type="number" step="0.01" style={inputStyles} value={player.economy} onChange={(e) => handlePlayerChange(index, "economy", e.target.value)} /></td>
+                  <tr
+                    key={player.id ?? `new-${index}`}
+                    className="border-t border-[color:var(--border)] bg-white/70"
+                  >
+                    <td className="p-2">
+                      <input
+                        style={inputStyles}
+                        value={player.team_name}
+                        onChange={(e) =>
+                          handlePlayerChange(index, "team_name", e.target.value)
+                        }
+                      />
+                    </td>
+                    <td className="p-2">
+                      <input
+                        style={inputStyles}
+                        value={player.player_name}
+                        onChange={(e) =>
+                          handlePlayerChange(
+                            index,
+                            "player_name",
+                            e.target.value,
+                          )
+                        }
+                      />
+                    </td>
+                    <td className="p-2">
+                      <input
+                        type="number"
+                        style={inputStyles}
+                        value={player.runs}
+                        onChange={(e) =>
+                          handlePlayerChange(index, "runs", e.target.value)
+                        }
+                      />
+                    </td>
+                    <td className="p-2">
+                      <input
+                        type="number"
+                        style={inputStyles}
+                        value={player.balls}
+                        onChange={(e) =>
+                          handlePlayerChange(index, "balls", e.target.value)
+                        }
+                      />
+                    </td>
+                    <td className="p-2">
+                      <input
+                        type="number"
+                        style={inputStyles}
+                        value={player.fours}
+                        onChange={(e) =>
+                          handlePlayerChange(index, "fours", e.target.value)
+                        }
+                      />
+                    </td>
+                    <td className="p-2">
+                      <input
+                        type="number"
+                        style={inputStyles}
+                        value={player.sixes}
+                        onChange={(e) =>
+                          handlePlayerChange(index, "sixes", e.target.value)
+                        }
+                      />
+                    </td>
+                    <td className="p-2">
+                      <input
+                        type="number"
+                        step="0.01"
+                        style={inputStyles}
+                        value={player.strike_rate}
+                        onChange={(e) =>
+                          handlePlayerChange(
+                            index,
+                            "strike_rate",
+                            e.target.value,
+                          )
+                        }
+                      />
+                    </td>
+                    <td className="p-2">
+                      <input
+                        type="number"
+                        style={inputStyles}
+                        value={player.wickets}
+                        onChange={(e) =>
+                          handlePlayerChange(index, "wickets", e.target.value)
+                        }
+                      />
+                    </td>
+                    <td className="p-2">
+                      <input
+                        type="number"
+                        step="0.1"
+                        style={inputStyles}
+                        value={player.overs}
+                        onChange={(e) =>
+                          handlePlayerChange(index, "overs", e.target.value)
+                        }
+                      />
+                    </td>
+                    <td className="p-2">
+                      <input
+                        type="number"
+                        step="0.01"
+                        style={inputStyles}
+                        value={player.economy}
+                        onChange={(e) =>
+                          handlePlayerChange(index, "economy", e.target.value)
+                        }
+                      />
+                    </td>
                     <td className="p-2 space-x-2">
-                      <button onClick={() => void savePlayer(player)} className="cta-btn secondary">Save</button>
-                      <button onClick={() => void deletePlayer(player.id)} className="cta-btn secondary">Delete</button>
+                      <button
+                        onClick={() => void savePlayer(player)}
+                        className="cta-btn secondary"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => void deletePlayer(player.id)}
+                        className="cta-btn secondary"
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -292,7 +484,9 @@ export default function AdminDashboard() {
             </table>
           </div>
 
-          <button onClick={saveAllPlayers} className="mt-6 cta-btn">{saving ? "Saving..." : "Save All Players"}</button>
+          <button onClick={saveAllPlayers} className="mt-6 cta-btn">
+            {saving ? "Saving..." : "Save All Players"}
+          </button>
         </div>
       </div>
     </div>

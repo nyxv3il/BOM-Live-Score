@@ -15,6 +15,10 @@ ALTER TABLE public.match_state
   ADD COLUMN IF NOT EXISTS match_3_time text,
   ADD COLUMN IF NOT EXISTS match_3_venue text,
   ADD COLUMN IF NOT EXISTS match_3_format text;
+  ADD COLUMN IF NOT EXISTS match_4_date text,
+  ADD COLUMN IF NOT EXISTS match_4_time text,
+  ADD COLUMN IF NOT EXISTS match_4_venue text,
+  ADD COLUMN IF NOT EXISTS match_4_format text;
 
 -- Optional seed/default for existing id=1 row
 UPDATE public.match_state
