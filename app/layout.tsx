@@ -10,8 +10,8 @@ const ibmPlexSans = IBM_Plex_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Live Score App - Light Maroon & Gold",
-  description: "A modern live score app with a light maroon and gold theme.",
+  title: "BOM Live Score",
+  description: "Live Score Broadcasting For Battle Of The Maroons",
 };
 
 export default function RootLayout({
