@@ -178,7 +178,7 @@ export default function ScoreBoard() {
         </h1>
       </section>
 
-      <section className="neon-card mb-8 w-full max-w-5xl p-6 md:p-8">
+      {/* <section className="neon-card mb-8 w-full max-w-5xl p-6 md:p-8">
         <div className="grid items-center gap-6 md:grid-cols-[130px_1fr]">
           <div className="mx-auto flex h-28 w-28 items-center justify-center overflow-hidden text-4xl">
             {match.match_logo_url ? (
@@ -205,7 +205,7 @@ export default function ScoreBoard() {
             </p>
           </div>
         </div>
-      </section>
+      </section> */}
 
       <section className="score-panel mb-8 w-full max-w-4xl p-8 text-center md:p-12">
         <p className="mb-2 text-sm uppercase tracking-[0.22em] text-[color:var(--primary)]/90">
