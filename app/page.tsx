@@ -84,32 +84,52 @@ export default function ScoreBoard() {
         <p className="mb-2 text-6xl font-black text-[color:var(--primary)] drop-shadow-[0_5px_14px_rgba(128,0,32,0.2)] md:text-8xl">
           {match.runs}/{match.wickets}
         </p>
-        <p className="text-xl font-semibold text-[color:var(--muted)]">{match.overs} overs</p>
+        <p className="text-xl font-semibold text-[color:var(--muted)]">
+          {match.overs} overs
+        </p>
       </section>
 
       <section className="grid w-full max-w-5xl grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         <article className="metric-card p-5">
-          <p className="mb-1 text-xs uppercase tracking-[0.2em] text-[color:var(--muted)]/80">Team A</p>
+          <p className="mb-1 text-xs uppercase tracking-[0.2em] text-[color:var(--muted)]/80">
+            Team A
+          </p>
           <h2 className="text-2xl font-bold">{match.team_a_name}</h2>
           <p className="mt-2 text-sm text-[color:var(--muted)]/80">
-            {match.batting_team === match.team_a_name ? "● Batting" : "◯ Fielding"}
+            {match.batting_team === match.team_a_name
+              ? "● Batting"
+              : "◯ Fielding"}
           </p>
         </article>
 
         <article className="metric-card p-5">
-          <p className="mb-1 text-xs uppercase tracking-[0.2em] text-[color:var(--primary)]/80">On Strike</p>
-          <h2 className="text-2xl font-bold text-[color:var(--primary)]">{match.current_batsman || "-"}</h2>
-          <p className="mt-2 text-sm text-[color:var(--muted)]/80">Current batsman</p>
+          <p className="mb-1 text-xs uppercase tracking-[0.2em] text-[color:var(--primary)]/80">
+            On Strike
+          </p>
+          <h2 className="text-2xl font-bold text-[color:var(--primary)]">
+            {match.current_batsman || "-"}
+          </h2>
+          <p className="mt-2 text-sm text-[color:var(--muted)]/80">
+            Current batsman
+          </p>
         </article>
 
         <article className="metric-card p-5">
-          <p className="mb-1 text-xs uppercase tracking-[0.2em] text-[color:var(--muted)]/80">Bowler</p>
-          <h2 className="text-2xl font-bold text-[color:var(--muted)]">{match.current_bowler || "-"}</h2>
-          <p className="mt-2 text-sm text-[color:var(--muted)]/80">Current bowler</p>
+          <p className="mb-1 text-xs uppercase tracking-[0.2em] text-[color:var(--muted)]/80">
+            Bowler
+          </p>
+          <h2 className="text-2xl font-bold text-[color:var(--muted)]">
+            {match.current_bowler || "-"}
+          </h2>
+          <p className="mt-2 text-sm text-[color:var(--muted)]/80">
+            Current bowler
+          </p>
         </article>
 
         <article className="metric-card p-5 md:col-span-2 lg:col-span-3">
-          <p className="mb-3 text-xs uppercase tracking-[0.2em] text-[color:var(--primary)]/80">Recent Balls</p>
+          <p className="mb-3 text-xs uppercase tracking-[0.2em] text-[color:var(--primary)]/80">
+            Recent Balls
+          </p>
           {recentBalls.length > 0 ? (
             <div className="flex flex-wrap gap-2">
               {recentBalls.map((ball, i) => (
@@ -119,19 +139,12 @@ export default function ScoreBoard() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-[color:var(--muted)]/70">No recent deliveries yet.</p>
+            <p className="text-sm text-[color:var(--muted)]/70">
+              No recent deliveries yet.
+            </p>
           )}
         </article>
       </section>
-
-      <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-        <button className="cta-btn" type="button">
-          Register Team
-        </button>
-        <button className="cta-btn secondary" type="button">
-          Learn More
-        </button>
-      </div>
     </main>
   );
 }

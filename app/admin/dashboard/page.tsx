@@ -13,6 +13,7 @@ interface MatchState {
   recent_balls: string;
   current_batsman: string;
   current_bowler: string;
+  batting_team: string;
 }
 
 export default function AdminDashboard() {
@@ -75,7 +76,7 @@ export default function AdminDashboard() {
           className="text-5xl font-black mb-2 neon-text text-center"
           style={{ color: "var(--primary)" }}
         >
-          ⚡ ADMIN CONTROL
+          ⚡ ADMIN PANEL
         </h1>
         <p className="text-center mb-12" style={{ color: "var(--purple)" }}>
           Update Live Match Scorecard
@@ -104,6 +105,17 @@ export default function AdminDashboard() {
                   name="team_b_name"
                   type="text"
                   value={match.team_b_name || ""}
+                  onChange={handleChange}
+                  className="focus:outline-none transition-all"
+                  style={inputStyles}
+                />
+              </div>
+              <div>
+                <label style={labelStyles}>Batting Team</label>
+                <input
+                  name="batting_team"
+                  type="text"
+                  value={match.batting_team || ""}
                   onChange={handleChange}
                   className="focus:outline-none transition-all"
                   style={inputStyles}
