@@ -60,43 +60,45 @@ export default function SummaryPage() {
         <h1 className="hero-heading mb-3 text-[color:var(--primary)]">Match Series Details</h1>
       </section>
 
-      {Object.entries(grouped).map(([team, rows]) => (
-        <section className="mb-8" key={team}>
-          <h2 className="mb-4 text-2xl font-bold text-[color:var(--primary)]">{team} Player Scores</h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full overflow-hidden rounded-xl border border-[color:var(--border)] bg-white/85">
-              <thead className="bg-[color:var(--primary)] text-left text-white">
-                <tr>
-                  <th className="px-4 py-3">Player</th>
-                  <th className="px-4 py-3">Runs</th>
-                  <th className="px-4 py-3">Balls</th>
-                  <th className="px-4 py-3">4s</th>
-                  <th className="px-4 py-3">6s</th>
-                  <th className="px-4 py-3">SR</th>
-                  <th className="px-4 py-3">Wkts</th>
-                  <th className="px-4 py-3">Overs</th>
-                  <th className="px-4 py-3">Econ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((player) => (
-                  <tr key={player.id} className="border-t border-[color:var(--border)]/70">
-                    <td className="px-4 py-3 font-semibold">{player.player_name}</td>
-                    <td className="px-4 py-3">{player.runs}</td>
-                    <td className="px-4 py-3">{player.balls}</td>
-                    <td className="px-4 py-3">{player.fours}</td>
-                    <td className="px-4 py-3">{player.sixes}</td>
-                    <td className="px-4 py-3">{player.strike_rate}</td>
-                    <td className="px-4 py-3">{player.wickets}</td>
-                    <td className="px-4 py-3">{player.overs}</td>
-                    <td className="px-4 py-3">{player.economy}</td>
+      <section className="mb-10 grid gap-6 lg:grid-cols-2">
+        {Object.entries(grouped).map(([team, rows]) => (
+          <article className="rounded-2xl border border-[color:var(--border)] bg-white/70 p-4 shadow-sm" key={team}>
+            <h2 className="mb-4 text-2xl font-bold text-[color:var(--primary)]">{team} Player Scores</h2>
+            <div className="overflow-x-auto">
+              <table className="min-w-full overflow-hidden rounded-xl border border-[color:var(--border)] bg-white/85">
+                <thead className="bg-[color:var(--primary)] text-left text-white">
+                  <tr>
+                    <th className="px-4 py-3">Player</th>
+                    <th className="px-4 py-3">Runs</th>
+                    <th className="px-4 py-3">Balls</th>
+                    <th className="px-4 py-3">4s</th>
+                    <th className="px-4 py-3">6s</th>
+                    <th className="px-4 py-3">SR</th>
+                    <th className="px-4 py-3">Wkts</th>
+                    <th className="px-4 py-3">Overs</th>
+                    <th className="px-4 py-3">Econ</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      ))}
+                </thead>
+                <tbody>
+                  {rows.map((player) => (
+                    <tr key={player.id} className="border-t border-[color:var(--border)]/70">
+                      <td className="px-4 py-3 font-semibold">{player.player_name}</td>
+                      <td className="px-4 py-3">{player.runs}</td>
+                      <td className="px-4 py-3">{player.balls}</td>
+                      <td className="px-4 py-3">{player.fours}</td>
+                      <td className="px-4 py-3">{player.sixes}</td>
+                      <td className="px-4 py-3">{player.strike_rate}</td>
+                      <td className="px-4 py-3">{player.wickets}</td>
+                      <td className="px-4 py-3">{player.overs}</td>
+                      <td className="px-4 py-3">{player.economy}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </article>
+        ))}
+      </section>
 
       <section className="flex justify-center">
         <Link href="/" className="cta-btn secondary">Back to Live Match</Link>
