@@ -1,5 +1,5 @@
 "use client";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import Cookies from "js-cookie";
@@ -10,13 +10,22 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const redirectTarget = searchParams.get("next") || "/admin/dashboard";
+
+  useEffect(() => {
+    const adminSession = Cookies.get("admin_session");
+    if (adminSession === "true") {
+      router.replace(redirectTarget);
+    }
+  }, [redirectTarget, router]);
+
   const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // Simple client-side check for demo. In production, use a Server Action.
     // We are matching against values you can hardcode here or fetch from an API.
     if (username === "bomadmin" && password === "epstein") {
       Cookies.set("admin_session", "true");
-      router.push(searchParams.get("next") || "/admin/dashboard");
+      router.push(redirectTarget);
     } else {
       alert("Invalid credentials");
     }
