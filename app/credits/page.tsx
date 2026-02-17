@@ -1,10 +1,11 @@
 import Link from "next/link";
 
 const teamMembers = [
-  { name: "Nadeesha Fernando", role: "Lead Frontend Developer" },
-  { name: "Kavintha Peris", role: "Backend & Data Engineer" },
-  { name: "Tharindu Silva", role: "UI/UX Designer" },
-  { name: "Madhura Jayakody", role: "QA & Release Coordinator" },
+  { name: "Navitha Aken", role: "Frontend Developer" },
+  { name: "Senura Perera", role: "Frontend Developer" },
+  { name: "Vidul Sankalpa", role: "Backend Developer" },
+  { name: "Dulina Duljaya", role: "Backend Developer" },
+  { name: "Yesith Sankalpa", role: "Backend Developer" },
 ];
 
 export default function CreditsPage() {
