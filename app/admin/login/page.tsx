@@ -117,7 +117,7 @@ function LoginForm() {
               e.currentTarget.style.transform = "translateY(0)";
             }}
           >
-            🔐 LOGIN
+            <i className="fas fa-lock"></i> LOGIN
           </button>
         </div>
       </form>

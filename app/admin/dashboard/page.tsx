@@ -81,7 +81,7 @@ export default function AdminDashboard() {
           className="text-5xl font-black mb-2 neon-text text-center"
           style={{ color: "var(--primary)" }}
         >
-          ⚡ ADMIN PANEL
+          <i className="fas fa-baseball"></i> ADMIN PANEL
         </h1>
         <p className="text-center mb-12" style={{ color: "var(--purple)" }}>
           Update Live Match Scorecard
@@ -278,7 +278,7 @@ export default function AdminDashboard() {
                 e.currentTarget.style.transform = "translateY(0)";
               }}
             >
-              🚀 BROADCAST UPDATE
+              <i className="fas fa-signal"></i> BROADCAST UPDATE
             </button>
           </form>
         </div>

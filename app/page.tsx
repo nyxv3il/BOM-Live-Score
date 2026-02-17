@@ -55,7 +55,7 @@ export default function ScoreBoard() {
     return (
       <div className="mx-auto flex min-h-[85vh] max-w-5xl items-center justify-center px-4">
         <p className="text-center text-3xl font-bold text-[color:var(--primary)] drop-shadow-[0_4px_12px_rgba(128,0,32,0.25)]">
-          ⚡ Loading Match Data...
+          <i className="fas fa-hourglass"></i> Loading Match Data...
         </p>
       </div>
     );
@@ -66,7 +66,9 @@ export default function ScoreBoard() {
   return (
     <main className="mx-auto flex min-h-[85vh] w-full max-w-6xl flex-col items-center justify-center px-4 py-12 md:py-20">
       <section className="mb-12 text-center md:mb-14">
-        <div className="hero-pill mb-6">🏏 live match center</div>
+        <div className="hero-pill mb-6">
+          <i className="fas fa-futbol"></i> live match center
+        </div>
         <h1 className="hero-heading mb-4">
           <span className="gradient">
             {match.team_a_name} vs {match.team_b_name}
@@ -76,9 +78,15 @@ export default function ScoreBoard() {
           Real-time cricket scoring with electric updates.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3">
-          <span className="meta-chip">🎯 Batting: {match.batting_team}</span>
-          <span className="meta-chip">⏱ Overs: {match.overs}</span>
-          <span className="meta-chip">📍 Live Feed</span>
+          <span className="meta-chip">
+            <i className="fas fa-location"></i> Batting: {match.batting_team}
+          </span>
+          <span className="meta-chip">
+            <i className="fas fa-baseball"></i> Overs: {match.overs}
+          </span>
+          <span className="meta-chip">
+            <i className="fas fa-wifi"></i> Live Feed
+          </span>
         </div>
       </section>
 
