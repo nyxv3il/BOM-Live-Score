@@ -12,7 +12,7 @@ export default function Login() {
     e.preventDefault();
     // Simple client-side check for demo. In production, use a Server Action.
     // We are matching against values you can hardcode here or fetch from an API.
-    if (username === "admin" && password === "fkingshit") {
+    if (username === "admin" && password === "epstein") {
       Cookies.set("admin_session", "true");
       router.push("/admin/dashboard");
     } else {
