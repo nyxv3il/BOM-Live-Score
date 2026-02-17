@@ -180,7 +180,7 @@ export default function ScoreBoard() {
 
       <section className="neon-card mb-8 w-full max-w-5xl p-6 md:p-8">
         <div className="grid items-center gap-6 md:grid-cols-[130px_1fr]">
-          <div className="mx-auto flex h-28 w-28 items-center justify-center overflow-hidden rounded-full border border-[color:var(--border)] bg-gradient-to-br from-[#fff6dd] via-[#f8d5df] to-[#f0b5c2] text-4xl shadow-[0_8px_24px_rgba(128,0,32,0.18)]">
+          <div className="mx-auto flex h-28 w-28 items-center justify-center overflow-hidden text-4xl">
             {match.match_logo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img

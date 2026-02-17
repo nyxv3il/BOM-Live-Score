@@ -28,10 +28,20 @@ body {
   color: var(--text);
   background:
     radial-gradient(circle at 14% 76%, rgba(128, 0, 32, 0.08), transparent 32%),
-    radial-gradient(circle at 88% 24%, rgba(201, 151, 26, 0.2), transparent 36%),
-    linear-gradient(130deg, var(--bg-top) 0%, #fff6e8 52%, var(--bg-bottom) 100%);
+    radial-gradient(
+      circle at 88% 24%,
+      rgba(201, 151, 26, 0.2),
+      transparent 36%
+    ),
+    linear-gradient(
+      130deg,
+      var(--bg-top) 0%,
+      #fff6e8 52%,
+      var(--bg-bottom) 100%
+    );
   background-attachment: fixed;
-  font-family: var(--font-ibm-plex-sans), "IBM Plex Sans", system-ui, sans-serif;
+  font-family:
+    var(--font-ibm-plex-sans), "IBM Plex Sans", system-ui, sans-serif;
   overflow-x: hidden;
 }
 
@@ -55,8 +65,7 @@ a {
 }
 
 .app-shell::before {
-  background:
-    linear-gradient(
+  background: linear-gradient(
       to bottom,
       transparent 0,
       transparent calc(100% - 1px),
@@ -68,7 +77,11 @@ a {
 }
 
 .app-shell::after {
-  background-image: radial-gradient(circle, rgba(201, 151, 26, 0.45) 0 4px, transparent 5px);
+  background-image: radial-gradient(
+    circle,
+    rgba(201, 151, 26, 0.45) 0 4px,
+    transparent 5px
+  );
   background-size: 520px 420px;
   background-position: 110px 140px;
   opacity: 0.3;
@@ -163,7 +176,11 @@ a {
 .score-panel {
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: linear-gradient(155deg, rgba(255, 252, 245, 0.96) 0%, rgba(255, 243, 214, 0.9) 100%);
+  background: linear-gradient(
+    155deg,
+    rgba(255, 252, 245, 0.96) 0%,
+    rgba(255, 243, 214, 0.9) 100%
+  );
   box-shadow:
     0 14px 42px rgba(128, 0, 32, 0.08),
     0 0 0 1px rgba(201, 151, 26, 0.22) inset;
@@ -186,7 +203,6 @@ a {
   font-weight: 700;
   padding: 0.35rem 0.62rem;
 }
-
 
 .neon-card {
   border: 1px solid rgba(128, 0, 32, 0.24);
