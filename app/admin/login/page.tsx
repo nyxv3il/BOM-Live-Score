@@ -14,7 +14,8 @@ export default function Login() {
     // We are matching against values you can hardcode here or fetch from an API.
     if (username === "bomadmin" && password === "epstein") {
       Cookies.set("admin_session", "true");
-      router.push("/admin/dashboard");
+      const nextPath = new URLSearchParams(window.location.search).get("next");
+      router.push(nextPath || "/admin/dashboard");
     } else {
       alert("Invalid credentials");
     }
