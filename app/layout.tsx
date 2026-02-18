@@ -1,28 +1,17 @@
-﻿import type { Metadata } from "next";
-import { Cormorant_Garamond, DM_Mono, Rajdhani } from "next/font/google";
+import type { Metadata } from "next";
+import { IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
+import Navbar from "../components/Navbar";
 
-const rajdhani = Rajdhani({
-  variable: "--font-rajdhani",
+const ibmPlexSans = IBM_Plex_Sans({
+  variable: "--font-ibm-plex-sans",
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
-});
-
-const dmMono = DM_Mono({
-  variable: "--font-dm-mono",
-  subsets: ["latin"],
-  weight: ["400", "500"],
-});
-
-const cormorant = Cormorant_Garamond({
-  variable: "--font-cormorant",
-  subsets: ["latin"],
-  weight: ["600"],
+  weight: ["400", "500", "700"],
 });
 
 export const metadata: Metadata = {
   title: "BOM Live Score",
-  description: "Battle of the Maroons live scoring",
+  description: "Live Score Broadcasting For Battle Of The Maroons",
 };
 
 export default function RootLayout({
@@ -32,8 +21,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${rajdhani.variable} ${dmMono.variable} ${cormorant.variable}`}>
-        {children}
+      <head>
+        <link
+          rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+          integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+          crossOrigin="anonymous"
+          referrerPolicy="no-referrer"
+        />
+      </head>
+      <body className={`${ibmPlexSans.variable} antialiased`}>
+        <div className="app-shell min-h-screen">
+          <Navbar />
+          {children}
+        </div>
       </body>
     </html>
   );
