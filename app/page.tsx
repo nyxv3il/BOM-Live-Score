@@ -1,343 +1,415 @@
-"use client";
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+﻿"use client";
 
-interface MatchState {
-  id: number;
-  created_at: string;
-  team_a_name: string;
-  team_b_name: string;
-  batting_team: string;
-  runs: number;
-  wickets: number;
-  overs: number;
-  current_batsman: string | null;
-  current_bowler: string | null;
-  recent_balls: string | null;
-  non_striker: string | null;
-  partnership: string | null;
-  current_batsman_stats: string | null;
-  non_striker_stats: string | null;
-  current_bowler_stats: string | null;
-  series_name: string | null;
-  match_logo_url: string | null;
-  match_description: string | null;
-  match_1_date: string | null;
-  match_1_time: string | null;
-  match_1_venue: string | null;
-  match_1_format: string | null;
-  match_2_date: string | null;
-  match_2_time: string | null;
-  match_2_venue: string | null;
-  match_2_format: string | null;
-  match_3_date: string | null;
-  match_3_time: string | null;
-  match_3_venue: string | null;
-  match_3_format: string | null;
-  match_4_date: string | null;
-  match_4_time: string | null;
-  match_4_venue: string | null;
-  match_4_format: string | null;
+import { useEffect, useMemo, useRef, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import type { BallEventRow, BallType, LiveStateRow, MatchRow, PlayerRow } from "@/lib/live-types";
+
+type ConnectionState = "connecting" | "online" | "offline";
+
+function ballClass(ballType: BallType, runs: number) {
+  if (ballType === "wicket") return "wicket";
+  if (ballType === "wide") return "wide";
+  if (ballType === "no_ball") return "no-ball";
+  if (ballType === "bye") return "bye";
+  if (ballType === "leg_bye") return "leg-bye";
+  if (ballType === "penalty") return "penalty";
+  if (runs === 0) return "dot";
+  if (runs === 4) return "four";
+  if (runs === 6) return "six";
+  return "runs";
 }
 
-const fallbackMatch: MatchState = {
-  id: 0,
-  created_at: "",
-  team_a_name: "School A",
-  team_b_name: "School B",
-  batting_team: "School A",
-  runs: 0,
-  wickets: 0,
-  overs: 0,
-  current_batsman: "-",
-  current_bowler: "-",
-  recent_balls: "",
-  non_striker: "-",
-  partnership: "0 (0)",
-  current_batsman_stats: "0 (0)",
-  non_striker_stats: "0 (0)",
-  current_bowler_stats: "0-0-0-0",
-  series_name: "Battle of the Maroons Series",
-  match_logo_url: "",
-  match_description:
-    "The annual inter-school cricket showdown featuring three decisive matches.",
-  match_1_date: "2026-02-20",
-  match_1_time: "9:00 AM",
-  match_1_venue: "St. Maroon Grounds, Colombo",
-  match_1_format: "50 Overs",
-  match_2_date: "2026-02-22",
-  match_2_time: "2:30 PM",
-  match_2_venue: "Royal Turf Arena, Kandy",
-  match_2_format: "T20",
-  match_3_date: "2026-02-25",
-  match_3_time: "10:00 AM",
-  match_3_venue: "Victory Sports Complex, Galle",
-  match_3_format: "50 Overs",
-  match_4_date: "2026-02-25",
-  match_4_time: "10:00 AM",
-  match_4_venue: "Victory Sports Complex, Galle",
-  match_4_format: "50 Overs",
-};
+function ballLabel(ballType: BallType, runs: number) {
+  if (ballType === "wicket") return "W";
+  if (ballType === "wide") return "WD";
+  if (ballType === "no_ball") return "NB";
+  if (ballType === "bye") return "B";
+  if (ballType === "leg_bye") return "LB";
+  if (ballType === "penalty") return "P";
+  return runs === 0 ? "·" : String(runs);
+}
 
-export default function ScoreBoard() {
-  const [match, setMatch] = useState<MatchState | null>(
-    supabase ? null : fallbackMatch,
-  );
+function isLegal(ballType: BallType) {
+  return ballType !== "wide" && ballType !== "no_ball";
+}
+
+const FALLBACK_MATCHES: MatchRow[] = [
+  {
+    id: "match_1",
+    label: "Test Match - Day 1",
+    format: "Test",
+    team_a_name: "Ananda College",
+    team_a_abbr: "AND",
+    team_a_emoji: "A",
+    team_b_name: "Nalanda College",
+    team_b_abbr: "NAL",
+    team_b_emoji: "N",
+    sort_order: 1,
+  },
+  {
+    id: "match_2",
+    label: "Test Match - Day 2",
+    format: "Test",
+    team_a_name: "Ananda College",
+    team_a_abbr: "AND",
+    team_a_emoji: "A",
+    team_b_name: "Nalanda College",
+    team_b_abbr: "NAL",
+    team_b_emoji: "N",
+    sort_order: 2,
+  },
+  {
+    id: "match_3",
+    label: "Test Match - Day 3",
+    format: "Test",
+    team_a_name: "Ananda College",
+    team_a_abbr: "AND",
+    team_a_emoji: "A",
+    team_b_name: "Nalanda College",
+    team_b_abbr: "NAL",
+    team_b_emoji: "N",
+    sort_order: 3,
+  },
+  {
+    id: "match_4",
+    label: "ODA",
+    format: "ODA",
+    team_a_name: "Ananda College",
+    team_a_abbr: "AND",
+    team_a_emoji: "A",
+    team_b_name: "Nalanda College",
+    team_b_abbr: "NAL",
+    team_b_emoji: "N",
+    sort_order: 4,
+  },
+];
+
+export default function ScorePage() {
+  const [connection, setConnection] = useState<ConnectionState>(supabase ? "connecting" : "offline");
+  const [matches, setMatches] = useState<MatchRow[]>(FALLBACK_MATCHES);
+  const [players, setPlayers] = useState<PlayerRow[]>([]);
+  const [liveState, setLiveState] = useState<LiveStateRow | null>(null);
+  const [balls, setBalls] = useState<BallEventRow[]>([]);
+  const [activeTab, setActiveTab] = useState<string>(FALLBACK_MATCHES[0].id);
+  const liveMatchIdRef = useRef<string | null>(null);
+
+  const activeMatch = useMemo(() => {
+    const targetId = activeTab || liveState?.active_match_id;
+    return matches.find((match) => match.id === targetId) || matches[0];
+  }, [activeTab, liveState?.active_match_id, matches]);
+
+  const playerById = useMemo(() => {
+    const byId = new Map<string, PlayerRow>();
+    players.forEach((player) => byId.set(player.id, player));
+    return byId;
+  }, [players]);
+
+  const teamsView = useMemo(() => {
+    if (!activeMatch) {
+      return {
+        battingAbbr: "BAT",
+        battingEmoji: "N",
+        fieldingAbbr: "BWL",
+        fieldingEmoji: "A",
+      };
+    }
+
+    const battingCode = (liveState?.batting_team_code || activeMatch.team_b_abbr || "").toUpperCase();
+    const teamA = activeMatch.team_a_abbr.toUpperCase();
+    if (battingCode === teamA) {
+      return {
+        battingAbbr: activeMatch.team_a_abbr,
+        battingEmoji: activeMatch.team_a_emoji,
+        fieldingAbbr: activeMatch.team_b_abbr,
+        fieldingEmoji: activeMatch.team_b_emoji,
+      };
+    }
+
+    return {
+      battingAbbr: activeMatch.team_b_abbr,
+      battingEmoji: activeMatch.team_b_emoji,
+      fieldingAbbr: activeMatch.team_a_abbr,
+      fieldingEmoji: activeMatch.team_a_emoji,
+    };
+  }, [activeMatch, liveState?.batting_team_code]);
 
   useEffect(() => {
+    if (!supabase) return;
     const client = supabase;
-    if (!client) return;
 
-    const fetchScore = async () => {
-      const { data } = await client
-        .from("match_state")
-        .select("*")
-        .eq("id", 1)
-        .single();
+    const load = async () => {
+      const [matchesRes, playersRes, liveRes] = await Promise.all([
+        client.from("matches").select("*").order("sort_order", { ascending: true }),
+        client.from("players").select("*").eq("is_active", true),
+        client.from("live_match_state").select("*").eq("id", 1).maybeSingle(),
+      ]);
 
-      setMatch((data as MatchState) || fallbackMatch);
+      if (matchesRes.data?.length) setMatches(matchesRes.data as MatchRow[]);
+      if (playersRes.data) setPlayers(playersRes.data as PlayerRow[]);
+
+      if (liveRes.data) {
+        const state = liveRes.data as LiveStateRow;
+        liveMatchIdRef.current = state.active_match_id;
+        setLiveState(state);
+        setActiveTab(state.active_match_id || matchesRes.data?.[0]?.id || FALLBACK_MATCHES[0].id);
+      }
+
+      setConnection("online");
     };
-    void fetchScore();
+    void load();
 
-    const channel = client
-      .channel("realtime:match_score")
+    const stateChannel = client
+      .channel("score-live-state")
       .on(
         "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "match_state" },
+        { event: "UPDATE", schema: "public", table: "live_match_state" },
         (payload) => {
-          setMatch(payload.new as MatchState);
+          const state = payload.new as LiveStateRow;
+          liveMatchIdRef.current = state.active_match_id;
+          setLiveState(state);
+          if (state.active_match_id) {
+            setActiveTab((prev) => prev || state.active_match_id || "");
+          }
+        },
+      )
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") setConnection("online");
+      });
+
+    const ballChannel = client
+      .channel("score-balls")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "ball_events" },
+        (payload) => {
+          const ball = payload.new as BallEventRow;
+          if (ball.match_id === liveMatchIdRef.current) {
+            setBalls((prev) => [...prev.slice(-119), ball]);
+          }
         },
       )
       .subscribe();
 
     return () => {
-      void client.removeChannel(channel);
+      void client.removeChannel(stateChannel);
+      void client.removeChannel(ballChannel);
     };
   }, []);
 
-  if (!match) {
-    return (
-      <div className="mx-auto flex min-h-[85vh] max-w-5xl items-center justify-center px-4">
-        Loading...
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (!supabase || !liveState?.active_match_id) return;
+    const client = supabase;
 
-  const runRate =
-    match.overs > 0 ? (match.runs / match.overs).toFixed(2) : "0.00";
-  const recentBalls = match.recent_balls?.split(" ").filter(Boolean) ?? [];
-  const timeline = [
-    {
-      match: "Test Match - Day 1",
-      date: match.match_1_date,
-      time: match.match_1_time,
-      venue: match.match_1_venue,
-      format: match.match_1_format,
-    },
-    {
-      match: "Test Match - Day 2",
-      date: match.match_2_date,
-      time: match.match_2_time,
-      venue: match.match_2_venue,
-      format: match.match_2_format,
-    },
-    {
-      match: "Test Match - Day 3",
-      date: match.match_3_date,
-      time: match.match_3_time,
-      venue: match.match_3_venue,
-      format: match.match_3_format,
-    },
-    {
-      match: "ODA",
-      date: match.match_4_date,
-      time: match.match_4_time,
-      venue: match.match_4_venue,
-      format: match.match_4_format,
-    },
-  ];
+    const loadBalls = async () => {
+      const ballsRes = await client
+        .from("ball_events")
+        .select("*")
+        .eq("match_id", liveState.active_match_id)
+        .order("id", { ascending: true })
+        .limit(120);
+      setBalls((ballsRes.data as BallEventRow[]) || []);
+    };
+
+    void loadBalls();
+  }, [liveState?.active_match_id]);
+
+  const strikerName = liveState?.current_striker_player_id
+    ? playerById.get(liveState.current_striker_player_id)?.name || liveState.current_striker_player_id
+    : null;
+  const nonStrikerName = liveState?.current_non_striker_player_id
+    ? playerById.get(liveState.current_non_striker_player_id)?.name || liveState.current_non_striker_player_id
+    : null;
+  const bowlerName = liveState?.current_bowler_player_id
+    ? playerById.get(liveState.current_bowler_player_id)?.name || liveState.current_bowler_player_id
+    : null;
+
+  const groupedOvers = useMemo(() => {
+    const overs: BallEventRow[][] = [];
+    let current: BallEventRow[] = [];
+    let legal = 0;
+
+    balls.forEach((ball) => {
+      current.push(ball);
+      if (isLegal(ball.ball_type)) legal += 1;
+
+      if (legal === 6) {
+        overs.push(current);
+        current = [];
+        legal = 0;
+      }
+    });
+
+    if (current.length) overs.push(current);
+    return overs;
+  }, [balls]);
+
+  const chipMode =
+    connection === "connecting"
+      ? "connecting"
+      : liveState?.status === "live"
+        ? "live"
+        : liveState?.status === "ended"
+          ? "ended"
+          : "paused";
+
+  const chipText =
+    connection === "connecting"
+      ? "Connecting"
+      : liveState?.status === "live"
+        ? "Live"
+        : liveState?.status === "ended"
+          ? "Final"
+          : liveState?.status === "idle"
+            ? "No Match"
+            : liveState?.status === "paused"
+              ? "Paused"
+              : "Offline";
 
   return (
-    <main className="mx-auto flex min-h-[85vh] w-full max-w-6xl flex-col items-center justify-center px-4 py-12 md:py-20">
-      {!supabase && (
-        <div className="mb-6 rounded-xl border border-[color:var(--border)] bg-white/80 px-4 py-3 text-center text-sm text-[color:var(--muted)]">
-          Live data is unavailable because Supabase environment variables are
-          not configured. Displaying demo values.
-        </div>
-      )}
-
-      <section className="mb-12 text-center md:mb-14">
-        <div className="hero-pill mb-6">
-          <i className="fas fa-futbol"></i> live match center
-        </div>
-        <h1 className="hero-heading mb-4">
-          <span className="gradient">
-            {match.team_a_name} vs {match.team_b_name}
-          </span>
-        </h1>
-      </section>
-
-      {/* <section className="neon-card mb-8 w-full max-w-5xl p-6 md:p-8">
-        <div className="grid items-center gap-6 md:grid-cols-[130px_1fr]">
-          <div className="mx-auto flex h-28 w-28 items-center justify-center overflow-hidden text-4xl">
-            {match.match_logo_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={match.match_logo_url}
-                alt="Match logo"
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <i className="fas fa-trophy"></i>
-            )}
-          </div>
-          <div>
-            <p className="mb-2 text-xs uppercase tracking-[0.2em] text-[color:var(--primary)]/80">
-              Match Info
-            </p>
-            <h2 className="mb-2 text-2xl font-bold md:text-3xl">
-              {match.series_name || "Battle of the Maroons Series"}
-            </h2>
-            <p className="text-[color:var(--muted)]">
-              {match.match_description ||
-                `The annual inter-school cricket showdown featuring three decisive matches between ${match.team_a_name} and ${match.team_b_name}.`}
-            </p>
+    <main className="score-page app">
+      <header className="score-header">
+        <div className="logo">
+          <div className="logo-wordmark">
+            Battle of the <span>Maroons</span>
           </div>
         </div>
-      </section> */}
+        <div className={`chip ${chipMode}`}>
+          {chipMode === "live" && <span className="ldot" />}
+          <span>{chipText}</span>
+        </div>
+      </header>
 
-      <section className="score-panel mb-8 w-full max-w-4xl p-8 text-center md:p-12">
-        <p className="mb-2 text-sm uppercase tracking-[0.22em] text-[color:var(--primary)]/90">
-          Current Score
-        </p>
-        <p className="mb-2 text-6xl font-black text-[color:var(--primary)] md:text-8xl">
-          {match.runs}/{match.wickets}
-        </p>
-        <p className="text-xl font-semibold text-[color:var(--muted)]">
-          {match.overs} overs | RR {runRate}
-        </p>
+      <section className="match-tabs">
+        {matches.map((match) => {
+          const isActiveTab = activeTab === match.id;
+          const isLiveMatch = liveState?.active_match_id === match.id && liveState.status === "live";
+
+          return (
+            <button
+              type="button"
+              key={match.id}
+              id={`tab-${match.id}`}
+              className={`tab ${isActiveTab ? "active" : ""}`}
+              onClick={() => setActiveTab(match.id)}
+            >
+              <span className="tab-fmt">{match.format}</span>
+              <span className="tab-name">{match.label}</span>
+              <span className={`tab-badge ${isLiveMatch ? "live-badge" : "done"}`}>
+                {isLiveMatch ? <span className="tdot" /> : null}
+                {isLiveMatch ? "Live" : "Done"}
+              </span>
+            </button>
+          );
+        })}
       </section>
 
-      <section className="mb-10 grid w-full max-w-5xl grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <article className="metric-card p-5">
-          <p className="mb-1 text-xs uppercase tracking-[0.2em] text-[color:var(--muted)]/80">
-            Team A
-          </p>
-          <h2 className="text-2xl font-bold">{match.team_a_name}</h2>
-          <p className="mt-2 text-sm text-[color:var(--muted)]/80">
-            {match.batting_team === match.team_a_name
-              ? "● Batting"
-              : "◯ Fielding"}
-          </p>
-        </article>
-
-        <article className="metric-card p-5">
-          <p className="mb-1 text-xs uppercase tracking-[0.2em] text-[color:var(--primary)]/80">
-            On Strike
-          </p>
-          <h2 className="text-2xl font-bold text-[color:var(--primary)]">
-            {match.current_batsman || "-"}
-          </h2>
-          <p className="mt-2 text-sm text-[color:var(--muted)]/80">
-            {match.current_batsman_stats || "-"}
-          </p>
-        </article>
-
-        <article className="metric-card p-5">
-          <p className="mb-1 text-xs uppercase tracking-[0.2em] text-[color:var(--muted)]/80">
-            Non-Striker
-          </p>
-          <h2 className="text-2xl font-bold text-[color:var(--muted)]">
-            {match.non_striker || "-"}
-          </h2>
-          <p className="mt-2 text-sm text-[color:var(--muted)]/80">
-            {match.non_striker_stats || "-"}
-          </p>
-        </article>
-
-        <article className="metric-card p-5">
-          <p className="mb-1 text-xs uppercase tracking-[0.2em] text-[color:var(--muted)]/80">
-            Bowler
-          </p>
-          <h2 className="text-2xl font-bold text-[color:var(--muted)]">
-            {match.current_bowler || "-"}
-          </h2>
-          <p className="mt-2 text-sm text-[color:var(--muted)]/80">
-            {match.current_bowler_stats || "-"}
-          </p>
-        </article>
-
-        <article className="metric-card p-5">
-          <p className="mb-1 text-xs uppercase tracking-[0.2em] text-[color:var(--muted)]/80">
-            Partnership
-          </p>
-          <h2 className="text-2xl font-bold text-[color:var(--muted)]">
-            {match.partnership || "-"}
-          </h2>
-          <p className="mt-2 text-sm text-[color:var(--muted)]/80">
-            Current partnership
-          </p>
-        </article>
-
-        <article className="metric-card p-5 md:col-span-2 lg:col-span-3">
-          <p className="mb-3 text-xs uppercase tracking-[0.2em] text-[color:var(--primary)]/80">
-            Recent Balls
-          </p>
-          {recentBalls.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {recentBalls.map((ball, i) => (
-                <span key={`${ball}-${i}`} className="ball-chip">
-                  {ball}
-                </span>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-[color:var(--muted)]/70">
-              No recent deliveries yet.
-            </p>
-          )}
-        </article>
-      </section>
-
-      <section className="mb-10 w-full max-w-5xl">
-        <h2 className="mb-4 text-center text-3xl font-bold text-[color:var(--primary)]">
-          Match Series Timeline
-        </h2>
-        <div className="grid gap-4 md:grid-cols-3">
-          {timeline.map((event) => (
-            <article key={event.match} className="neon-card p-5">
-              <p className="text-xs uppercase tracking-[0.16em] text-[color:var(--primary)]/80">
-                {event.match}
-              </p>
-              <h3 className="mt-2 text-xl font-bold">{event.format || "-"}</h3>
-              <ul className="mt-3 space-y-2 text-sm text-[color:var(--muted)]">
-                <li>
-                  <i className="fas fa-calendar mr-2"></i>
-                  {event.date || "-"}
-                </li>
-                <li>
-                  <i className="fas fa-clock mr-2"></i>
-                  {event.time || "-"}
-                </li>
-                <li>
-                  <i className="fas fa-map-marker-alt mr-2"></i>
-                  {event.venue || "-"}
-                </li>
-              </ul>
+      <section className="score-content content">
+        {!liveState || !liveState.active_match_id || liveState.status === "idle" ? (
+          <div className="state-card">
+            <div className="state-title">No live match right now</div>
+            <div className="state-sub">96th Battle of the Maroons</div>
+          </div>
+        ) : (
+          <>
+            <article className="score-card">
+              <div className="sc-gold" />
+              <div className="sc-label">
+                <span className="sc-label-text">{activeMatch?.label || "Live Match"}</span>
+                <span className="sc-fmt">{activeMatch?.format || "Match"}</span>
+              </div>
+              <div className="teams">
+                <div className="team">
+                  <div className="team-emblem batting">{teamsView.battingEmoji || "N"}</div>
+                  <div className="team-abbr">{teamsView.battingAbbr || "BAT"}</div>
+                  <div className="team-score">
+                    {liveState.current_score}
+                    <span className="w">/{liveState.current_wickets}</span>
+                  </div>
+                </div>
+                <div className="vs">VS</div>
+                <div className="team">
+                  <div className="team-emblem">{teamsView.fieldingEmoji || "A"}</div>
+                  <div className="team-abbr">{teamsView.fieldingAbbr || "BWL"}</div>
+                  <div className="team-score dim">{liveState.previous_innings_score || "-"}</div>
+                </div>
+              </div>
+              <div className="inning-bar">
+                <div className={`inn-pip ${liveState.current_inning === 1 ? "active" : ""}`} />
+                <div className={`inn-pip ${liveState.current_inning === 2 ? "active" : ""}`} />
+                <div className="inn-lbl">
+                  Inning {liveState.current_inning} · {liveState.over_count}.{liveState.ball_in_over}
+                </div>
+              </div>
             </article>
-          ))}
-        </div>
-      </section>
 
-      <section className="mb-4 flex flex-wrap justify-center gap-3">
-        <Link className="cta-btn" href="/summary">
-          View Series Summary
-        </Link>
-        <Link className="cta-btn secondary" href="/credits">
-          View Credits
-        </Link>
+            <article className="players-card">
+              <div className="pc-header">
+                <div className="pc-title">At the Crease</div>
+              </div>
+              {strikerName && (
+                <div className="player-row">
+                  <div className="player-left">
+                    <div className="player-dot striker" />
+                    <div className="player-name striker">{strikerName}</div>
+                  </div>
+                  <div className="role-badge rb-striker">Striker</div>
+                </div>
+              )}
+              {nonStrikerName && (
+                <div className="player-row">
+                  <div className="player-left">
+                    <div className="player-dot non-striker" />
+                    <div className="player-name">{nonStrikerName}</div>
+                  </div>
+                  <div className="role-badge rb-non-striker">Non Striker</div>
+                </div>
+              )}
+              {bowlerName && (
+                <div className="player-row">
+                  <div className="player-left">
+                    <div className="player-dot bowler" />
+                    <div className="player-name">{bowlerName}</div>
+                  </div>
+                  <div className="role-badge rb-bowler">Bowling</div>
+                </div>
+              )}
+            </article>
+
+            {groupedOvers.length > 0 && (
+              <article className="ball-card">
+                <div className="pc-header">
+                  <div className="pc-title">Ball by Ball</div>
+                </div>
+                <div className="ball-seq">
+                  {groupedOvers.map((over, overIndex) => (
+                    <div className="over" key={`over-${overIndex}`}>
+                      {overIndex > 0 && <div className="over-sep" />}
+                      {over.map((ball) => (
+                        <span
+                          className={`ball ${ballClass(ball.ball_type, ball.runs_scored)}`}
+                          key={ball.id}
+                        >
+                          {ballLabel(ball.ball_type, ball.runs_scored)}
+                        </span>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </article>
+            )}
+
+            {liveState.status === "paused" && (
+              <div className="state-card">
+                <div className="state-title">Match is paused</div>
+                <div className="state-sub">{liveState.pause_reason || "Weather break"}</div>
+              </div>
+            )}
+
+            {liveState.status === "ended" && <div className="result-bar">Match Ended · Final Result</div>}
+          </>
+        )}
       </section>
     </main>
   );
 }
+
