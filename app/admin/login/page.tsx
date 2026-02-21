@@ -7,6 +7,7 @@ import Cookies from "js-cookie";
 function LoginForm() {
   const [username, setUser] = useState("");
   const [password, setPass] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -19,11 +20,25 @@ function LoginForm() {
     }
   }, [redirectTarget, router]);
 
-  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Simple client-side check for demo. In production, use a Server Action.
-    // We are matching against values you can hardcode here or fetch from an API.
-    if (username === "bomadmin" && password === "epstein") {
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: username.trim(),
+          password,
+        }),
+      });
+
+      if (!response.ok) {
+        alert("Invalid credentials");
+        return;
+      }
+
       // Set cookie with secure attributes for production
       Cookies.set("admin_session", "true", {
         path: "/",
@@ -31,8 +46,10 @@ function LoginForm() {
         sameSite: "strict",
       });
       router.push(redirectTarget);
-    } else {
-      alert("Invalid credentials");
+    } catch {
+      alert("Login failed. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -100,11 +117,14 @@ function LoginForm() {
 
           <button
             className="w-full py-3 rounded-lg font-black text-lg uppercase tracking-wider transition-all duration-300 border-2 mt-8"
+            disabled={isSubmitting}
             style={{
               backgroundColor: "var(--primary)",
               color: "#fff",
               borderColor: "var(--primary)",
               boxShadow: "0 0 20px rgba(128, 0, 32, 0.22)",
+              opacity: isSubmitting ? 0.75 : 1,
+              cursor: isSubmitting ? "not-allowed" : "pointer",
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.boxShadow =
@@ -117,7 +137,8 @@ function LoginForm() {
               e.currentTarget.style.transform = "translateY(0)";
             }}
           >
-            <i className="fas fa-lock"></i> LOGIN
+            <i className="fas fa-lock"></i>{" "}
+            {isSubmitting ? "LOGGING IN..." : "LOGIN"}
           </button>
         </div>
       </form>

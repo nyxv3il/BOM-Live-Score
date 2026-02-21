@@ -1,0 +1,118 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BOM Live Score | Admin Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <nav class="nav-shell" data-nav></nav>
+
+      <main class="admin-main">
+        <div class="admin-shell">
+          <h1 class="dashboard-title"><i class="fas fa-baseball"></i> ADMIN BROADCAST PANEL</h1>
+
+          <section class="neon-card admin-card">
+            <h2>Match Controls</h2>
+            <div class="broadcast-grid">
+              <div class="field-wrap">
+                <label for="matchIdSelect">Match ID</label>
+                <select id="matchIdSelect" class="player-input"></select>
+              </div>
+              <div class="field-wrap">
+                <label for="openingTeamSelect">Opening Team</label>
+                <select id="openingTeamSelect" class="player-input">
+                  <option value="ananda_college">Ananda College</option>
+                  <option value="nalanda_college">Nalanda College</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="button-row">
+              <button id="btnToss" class="cta-btn secondary" type="button">Broadcast Toss</button>
+              <button id="btnStart" class="cta-btn" type="button">Start Match</button>
+              <button id="btnPause" class="cta-btn secondary" type="button">Pause Match</button>
+              <button id="btnEnd" class="cta-btn secondary" type="button">End Match</button>
+            </div>
+
+            <div class="field-wrap" style="max-width: 560px;">
+              <label for="pauseReason">Pause Reason</label>
+              <input id="pauseReason" class="player-input" placeholder="Rain delay" />
+            </div>
+
+            <p id="matchMessage" class="form-message"></p>
+          </section>
+
+          <section class="neon-card admin-card">
+            <h2>Ball Update</h2>
+            <div class="broadcast-grid">
+              <div class="field-wrap">
+                <label for="ballType">Ball Type</label>
+                <select id="ballType" class="player-input">
+                  <option value="runs">runs</option>
+                  <option value="wide">wide</option>
+                  <option value="no_ball">no_ball</option>
+                  <option value="bye">bye</option>
+                  <option value="leg_bye">leg_bye</option>
+                  <option value="wicket">wicket</option>
+                  <option value="penalty">penalty</option>
+                </select>
+              </div>
+              <div class="field-wrap">
+                <label for="runsScored">Runs Scored</label>
+                <input id="runsScored" type="number" min="0" max="7" value="0" class="player-input" />
+              </div>
+              <div class="field-wrap">
+                <label for="strikerId">Striker</label>
+                <select id="strikerId" class="player-input"></select>
+              </div>
+              <div class="field-wrap">
+                <label for="nonStrikerId">Non-Striker</label>
+                <select id="nonStrikerId" class="player-input"></select>
+              </div>
+              <div class="field-wrap">
+                <label for="bowlerId">Bowler</label>
+                <select id="bowlerId" class="player-input"></select>
+              </div>
+              <div class="field-wrap">
+                <label for="fielderId">Wicket Fielder ID (optional)</label>
+                <input id="fielderId" class="player-input" placeholder="ncp_05" />
+              </div>
+            </div>
+
+            <div class="button-row">
+              <button id="btnBall" class="cta-btn" type="button">Broadcast Ball</button>
+              <button id="btnSwapStrikers" class="cta-btn secondary" type="button">Swap Strikers</button>
+              <button id="btnEndOver" class="cta-btn secondary" type="button">End Over (Swap)</button>
+            </div>
+            <p id="ballMessage" class="form-message"></p>
+          </section>
+
+          <section class="neon-card admin-card">
+            <h2>Live Update Feed</h2>
+            <pre id="feedOutput" class="feed-output">Waiting for SSE events...</pre>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <script src="./shared.js"></script>
+    <script src="./api.js"></script>
+    <script src="./admin-dashboard.js"></script>
+  </body>
+</html>

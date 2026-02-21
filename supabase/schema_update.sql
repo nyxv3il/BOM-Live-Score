@@ -1,8 +1,13 @@
--- Add new columns to your existing match_state table
+﻿-- Add new columns to your existing match_state table
 ALTER TABLE public.match_state
   ADD COLUMN IF NOT EXISTS series_name text,
   ADD COLUMN IF NOT EXISTS match_logo_url text,
   ADD COLUMN IF NOT EXISTS match_description text,
+  ADD COLUMN IF NOT EXISTS non_striker text,
+  ADD COLUMN IF NOT EXISTS partnership text,
+  ADD COLUMN IF NOT EXISTS current_batsman_stats text,
+  ADD COLUMN IF NOT EXISTS non_striker_stats text,
+  ADD COLUMN IF NOT EXISTS current_bowler_stats text,
   ADD COLUMN IF NOT EXISTS match_1_date text,
   ADD COLUMN IF NOT EXISTS match_1_time text,
   ADD COLUMN IF NOT EXISTS match_1_venue text,
@@ -14,7 +19,7 @@ ALTER TABLE public.match_state
   ADD COLUMN IF NOT EXISTS match_3_date text,
   ADD COLUMN IF NOT EXISTS match_3_time text,
   ADD COLUMN IF NOT EXISTS match_3_venue text,
-  ADD COLUMN IF NOT EXISTS match_3_format text;
+  ADD COLUMN IF NOT EXISTS match_3_format text,
   ADD COLUMN IF NOT EXISTS match_4_date text,
   ADD COLUMN IF NOT EXISTS match_4_time text,
   ADD COLUMN IF NOT EXISTS match_4_venue text,

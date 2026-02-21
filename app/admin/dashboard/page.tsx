@@ -56,6 +56,14 @@ interface PlayerScore {
   economy: number;
 }
 
+const swapStrikerFields = (state: MatchState): MatchState => ({
+  ...state,
+  current_batsman: state.non_striker,
+  non_striker: state.current_batsman,
+  current_batsman_stats: state.non_striker_stats,
+  non_striker_stats: state.current_batsman_stats,
+});
+
 const defaultMatch: MatchState = {
   team_a_name: "",
   team_b_name: "",
@@ -109,6 +117,7 @@ export default function AdminDashboard() {
   const [match, setMatch] = useState<MatchState>(defaultMatch);
   const [players, setPlayers] = useState<PlayerScore[]>([]);
   const [saving, setSaving] = useState(false);
+  const [updatableMatchKeys, setUpdatableMatchKeys] = useState<string[]>([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -124,7 +133,13 @@ export default function AdminDashboard() {
           .order("player_name", { ascending: true }),
       ]);
 
-      if (matchData) setMatch(matchData as MatchState);
+      if (matchData) {
+        setMatch((prev) => ({
+          ...prev,
+          ...(matchData as Partial<MatchState>),
+        }));
+        setUpdatableMatchKeys(Object.keys(matchData));
+      }
       if (playersData) setPlayers(playersData as PlayerScore[]);
     };
 
@@ -176,15 +191,67 @@ export default function AdminDashboard() {
       return;
     }
 
+    const payload = Object.fromEntries(
+      Object.entries(match).filter(
+        ([key]) => key !== "id" && updatableMatchKeys.includes(key),
+      ),
+    );
+
     const { error } = await supabase
       .from("match_state")
-      .update(match)
+      .update(payload)
       .eq("id", 1);
     if (error) {
-      alert("Error updating match info.");
+      alert(`Error updating match info: ${error.message}`);
       return;
     }
     alert("Match info updated.");
+  };
+
+  const persistMatch = async (
+    nextMatch: MatchState,
+    successMessage: string,
+  ) => {
+    if (!supabase) {
+      alert("Supabase is not configured.");
+      return;
+    }
+
+    setMatch(nextMatch);
+    const payload = Object.fromEntries(
+      Object.entries(nextMatch).filter(
+        ([key]) => key !== "id" && updatableMatchKeys.includes(key),
+      ),
+    );
+    const { error } = await supabase
+      .from("match_state")
+      .update(payload)
+      .eq("id", 1);
+
+    if (error) {
+      alert(`Error updating match info: ${error.message}`);
+      return;
+    }
+
+    alert(successMessage);
+  };
+
+  const handleSwapStrikers = async () => {
+    const swappedMatch = swapStrikerFields(match);
+    await persistMatch(swappedMatch, "Striker and non-striker swapped.");
+  };
+
+  const handleEndOver = async () => {
+    const swappedMatch = swapStrikerFields(match);
+    const currentOvers = Number(swappedMatch.overs);
+    const nextOver = Number.isFinite(currentOvers)
+      ? Math.floor(currentOvers) + 1
+      : 1;
+
+    await persistMatch(
+      { ...swappedMatch, overs: nextOver },
+      "Over ended and batters swapped.",
+    );
   };
 
   const savePlayer = async (player: PlayerScore) => {
@@ -252,6 +319,14 @@ export default function AdminDashboard() {
     display: "block",
   };
 
+  const missingMatchColumns = [
+    "non_striker",
+    "partnership",
+    "current_batsman_stats",
+    "non_striker_stats",
+    "current_bowler_stats",
+  ].filter((column) => !updatableMatchKeys.includes(column));
+
   return (
     <div className="min-h-screen py-10 px-4">
       <div className="mx-auto w-full max-w-6xl space-y-8">
@@ -272,33 +347,92 @@ export default function AdminDashboard() {
           >
             Match + Timeline Details
           </h2>
+          {missingMatchColumns.length > 0 && (
+            <p
+              className="mb-4 text-sm font-semibold"
+              style={{ color: "#b00020" }}
+            >
+              DB schema is missing columns: {missingMatchColumns.join(", ")}.
+              Run the `match_state` migration before editing these fields.
+            </p>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {Object.entries(match).map(([key, value]) => (
-              <div
-                key={key}
-                className={key === "match_description" ? "md:col-span-2" : ""}
-              >
-                <label style={labelStyles}>{key.replaceAll("_", " ")}</label>
-                {key === "match_description" ? (
-                  <textarea
-                    name={key}
-                    value={String(value ?? "")}
-                    onChange={handleMatchChange}
-                    className="focus:outline-none transition-all"
-                    style={{ ...inputStyles, minHeight: "110px" }}
-                  />
-                ) : (
-                  <input
-                    name={key}
-                    type="text"
-                    value={String(value ?? "")}
-                    onChange={handleMatchChange}
-                    className="focus:outline-none transition-all"
-                    style={inputStyles}
-                  />
-                )}
-              </div>
-            ))}
+            {Object.entries(match).map(([key, value]) => {
+              if (key === "non_striker") return null;
+
+              if (key === "current_batsman") {
+                return (
+                  <div
+                    key={key}
+                    className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-5"
+                  >
+                    <div>
+                      <label style={labelStyles}>current batsman</label>
+                      <input
+                        name="current_batsman"
+                        type="text"
+                        value={String(match.current_batsman ?? "")}
+                        onChange={handleMatchChange}
+                        className="focus:outline-none transition-all"
+                        style={inputStyles}
+                      />
+                    </div>
+                    <div>
+                      <label style={labelStyles}>non striker</label>
+                      <input
+                        name="non_striker"
+                        type="text"
+                        value={String(match.non_striker ?? "")}
+                        onChange={handleMatchChange}
+                        className="focus:outline-none transition-all"
+                        style={inputStyles}
+                      />
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <div
+                  key={key}
+                  className={key === "match_description" ? "md:col-span-2" : ""}
+                >
+                  <label style={labelStyles}>{key.replaceAll("_", " ")}</label>
+                  {key === "match_description" ? (
+                    <textarea
+                      name={key}
+                      value={String(value ?? "")}
+                      onChange={handleMatchChange}
+                      className="focus:outline-none transition-all"
+                      style={{ ...inputStyles, minHeight: "110px" }}
+                    />
+                  ) : (
+                    <input
+                      name={key}
+                      type="text"
+                      value={String(value ?? "")}
+                      onChange={handleMatchChange}
+                      className="focus:outline-none transition-all"
+                      style={inputStyles}
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <button
+              onClick={() => void handleSwapStrikers()}
+              className="cta-btn secondary"
+            >
+              Swap Striker / Non-Striker
+            </button>
+            <button
+              onClick={() => void handleEndOver()}
+              className="cta-btn secondary"
+            >
+              End Over (Swap Batters)
+            </button>
           </div>
           <button onClick={saveMatch} className="mt-6 cta-btn">
             Save Match Info
