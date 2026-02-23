@@ -253,7 +253,7 @@ export default function AdminDashboard() {
       : 1;
 
     await persistMatch(
-      { ...swappedMatch, overs: nextOver },
+      { ...swappedMatch, overs: nextOver, recent_balls: "" },
       "Over ended and batters swapped.",
     );
   };
@@ -272,7 +272,7 @@ export default function AdminDashboard() {
 
   const pushRecentBall = (prev: string, event: string): string => {
     const history = prev.trim() ? prev.trim().split(/\s+/) : [];
-    return [...history, event].slice(-12).join(" ");
+    return [...history, event].join(" ");
   };
 
   const buildDeliveryEvent = (
@@ -320,7 +320,10 @@ export default function AdminDashboard() {
       runs: Number(match.runs) + runIncrement,
       wickets: Number(match.wickets) + (withWicket ? 1 : 0),
       overs: ballsToOvers(nextBalls),
-      recent_balls: pushRecentBall(match.recent_balls, ballEvent),
+      recent_balls:
+        legalDelivery && nextBalls % 6 === 0
+          ? ""
+          : pushRecentBall(match.recent_balls, ballEvent),
     };
 
     setRecordingDelivery(true);
