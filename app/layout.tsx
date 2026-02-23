@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Sans } from "next/font/google";
+import Image from "next/image";
 import "./globals.css";
 import Navbar from "../components/Navbar";
 
@@ -19,6 +20,10 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  console.log(
+    "Designed And Developed By ACICTS\nProject Repository: https://github.com/nyxv3il/live-score-app",
+  );
+
   return (
     <html lang="en">
       <head>
@@ -31,9 +36,23 @@ export default function RootLayout({
         />
       </head>
       <body className={`${ibmPlexSans.variable} antialiased`}>
-        <div className="app-shell min-h-screen">
+        <div className="app-shell min-h-screen flex flex-col">
           <Navbar />
-          {children}
+          <main className="flex-1">{children}</main>
+          <footer className="site-footer">
+            <div className="site-footer__inner">
+              <Image
+                src="/acicts.png"
+                alt="ACICTS logo"
+                width={48}
+                height={48}
+                className="site-footer__logo"
+              />
+              <p className="site-footer__text">
+                Designed And Developed By ACICTS
+              </p>
+            </div>
+          </footer>
         </div>
       </body>
     </html>
