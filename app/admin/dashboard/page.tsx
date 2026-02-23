@@ -56,6 +56,16 @@ interface PlayerScore {
   economy: number;
 }
 
+type MatchFieldKey = Exclude<keyof MatchState, "id">;
+type ExtraType = "none" | "wd" | "nb" | "bye" | "legbye";
+type WicketType =
+  | "bowled"
+  | "caught"
+  | "lbw"
+  | "run_out"
+  | "stumped"
+  | "hit_wicket";
+
 const swapStrikerFields = (state: MatchState): MatchState => ({
   ...state,
   current_batsman: state.non_striker,
@@ -116,8 +126,12 @@ const newPlayerRow: PlayerScore = {
 export default function AdminDashboard() {
   const [match, setMatch] = useState<MatchState>(defaultMatch);
   const [players, setPlayers] = useState<PlayerScore[]>([]);
-  const [saving, setSaving] = useState(false);
   const [updatableMatchKeys, setUpdatableMatchKeys] = useState<string[]>([]);
+  const [selectedRuns, setSelectedRuns] = useState(0);
+  const [selectedExtra, setSelectedExtra] = useState<ExtraType>("none");
+  const [selectedWicket, setSelectedWicket] = useState<WicketType>("bowled");
+  const [deliveryComment, setDeliveryComment] = useState("");
+  const [recordingDelivery, setRecordingDelivery] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -186,43 +200,31 @@ export default function AdminDashboard() {
   };
 
   const saveMatch = async () => {
-    if (!supabase) {
-      alert("Supabase is not configured.");
-      return;
-    }
-
-    const payload = Object.fromEntries(
-      Object.entries(match).filter(
-        ([key]) => key !== "id" && updatableMatchKeys.includes(key),
-      ),
-    );
-
-    const { error } = await supabase
-      .from("match_state")
-      .update(payload)
-      .eq("id", 1);
-    if (error) {
-      alert(`Error updating match info: ${error.message}`);
-      return;
-    }
-    alert("Match info updated.");
+    await persistMatch(match, "Match info updated.");
   };
 
-  const persistMatch = async (
-    nextMatch: MatchState,
-    successMessage: string,
-  ) => {
-    if (!supabase) {
-      alert("Supabase is not configured.");
-      return;
-    }
-
-    setMatch(nextMatch);
-    const payload = Object.fromEntries(
+  const getMatchPayload = (nextMatch: MatchState) =>
+    Object.fromEntries(
       Object.entries(nextMatch).filter(
         ([key]) => key !== "id" && updatableMatchKeys.includes(key),
       ),
     );
+
+  const persistMatch = async (
+    nextMatch: MatchState,
+    successMessage?: string,
+  ): Promise<boolean> => {
+    if (!supabase) {
+      alert("Supabase is not configured.");
+      return false;
+    }
+
+    const payload = getMatchPayload(nextMatch);
+    if (Object.keys(payload).length === 0) {
+      alert("Match data is still loading. Try again in a moment.");
+      return false;
+    }
+
     const { error } = await supabase
       .from("match_state")
       .update(payload)
@@ -230,10 +232,12 @@ export default function AdminDashboard() {
 
     if (error) {
       alert(`Error updating match info: ${error.message}`);
-      return;
+      return false;
     }
 
-    alert(successMessage);
+    setMatch(nextMatch);
+    if (successMessage) alert(successMessage);
+    return true;
   };
 
   const handleSwapStrikers = async () => {
@@ -252,6 +256,82 @@ export default function AdminDashboard() {
       { ...swappedMatch, overs: nextOver },
       "Over ended and batters swapped.",
     );
+  };
+
+  const oversToBalls = (oversValue: number): number => {
+    const wholeOvers = Math.floor(oversValue);
+    const ballPart = Math.round((oversValue - wholeOvers) * 10);
+    return wholeOvers * 6 + Math.min(Math.max(ballPart, 0), 5);
+  };
+
+  const ballsToOvers = (totalBalls: number): number => {
+    const wholeOvers = Math.floor(totalBalls / 6);
+    const ballPart = totalBalls % 6;
+    return Number(`${wholeOvers}.${ballPart}`);
+  };
+
+  const pushRecentBall = (prev: string, event: string): string => {
+    const history = prev.trim() ? prev.trim().split(/\s+/) : [];
+    return [...history, event].slice(-12).join(" ");
+  };
+
+  const buildDeliveryEvent = (
+    runs: number,
+    extra: ExtraType,
+    wicketType?: WicketType,
+  ) => {
+    const wicketMap: Record<WicketType, string> = {
+      bowled: "B",
+      caught: "C",
+      lbw: "LBW",
+      run_out: "RO",
+      stumped: "ST",
+      hit_wicket: "HW",
+    };
+
+    let event = ".";
+
+    if (extra === "wd") event = runs > 0 ? `WD+${runs}` : "WD";
+    else if (extra === "nb") event = runs > 0 ? `NB+${runs}` : "NB";
+    else if (extra === "bye") event = runs > 0 ? `B${runs}` : "B";
+    else if (extra === "legbye") event = runs > 0 ? `LB${runs}` : "LB";
+    else event = runs === 0 ? "." : String(runs);
+
+    if (!wicketType) return event;
+    return `${event}/W-${wicketMap[wicketType]}`;
+  };
+
+  const applyDelivery = async (withWicket: boolean) => {
+    if (recordingDelivery) return;
+
+    const legalDelivery = selectedExtra !== "wd" && selectedExtra !== "nb";
+    const baseRuns = selectedExtra === "wd" || selectedExtra === "nb" ? 1 : 0;
+    const runIncrement = baseRuns + selectedRuns;
+    const currentBalls = oversToBalls(Number(match.overs) || 0);
+    const nextBalls = legalDelivery ? currentBalls + 1 : currentBalls;
+    const ballEvent = buildDeliveryEvent(
+      selectedRuns,
+      selectedExtra,
+      withWicket ? selectedWicket : undefined,
+    );
+
+    const nextMatch: MatchState = {
+      ...match,
+      runs: Number(match.runs) + runIncrement,
+      wickets: Number(match.wickets) + (withWicket ? 1 : 0),
+      overs: ballsToOvers(nextBalls),
+      recent_balls: pushRecentBall(match.recent_balls, ballEvent),
+    };
+
+    setRecordingDelivery(true);
+    const saved = await persistMatch(nextMatch);
+    setRecordingDelivery(false);
+
+    if (saved) {
+      setSelectedRuns(0);
+      setSelectedExtra("none");
+      setDeliveryComment("");
+    }
   };
 
   const savePlayer = async (player: PlayerScore) => {
@@ -286,20 +366,6 @@ export default function AdminDashboard() {
     if (!error) setPlayers((prev) => prev.filter((p) => p.id !== id));
   };
 
-  const saveAllPlayers = async () => {
-    if (!supabase) {
-      alert("Supabase is not configured.");
-      return;
-    }
-
-    setSaving(true);
-    for (const player of players) {
-      await savePlayer(player);
-    }
-    setSaving(false);
-    alert("All player rows saved.");
-  };
-
   const inputStyles = {
     backgroundColor: "var(--input)",
     color: "var(--silver)",
@@ -326,6 +392,50 @@ export default function AdminDashboard() {
     "non_striker_stats",
     "current_bowler_stats",
   ].filter((column) => !updatableMatchKeys.includes(column));
+
+  const formatLabel = (key: MatchFieldKey) =>
+    key
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+
+  const renderMatchField = (key: MatchFieldKey) => {
+    const value = String(match[key] ?? "");
+    const isLongText = key === "match_description";
+    const isScoreField =
+      key === "runs" ||
+      key === "wickets" ||
+      key === "overs" ||
+      key === "recent_balls";
+
+    return (
+      <div key={key} className={isLongText ? "md:col-span-2" : ""}>
+        <label style={labelStyles}>{formatLabel(key)}</label>
+        {isLongText ? (
+          <textarea
+            name={key}
+            value={value}
+            onChange={handleMatchChange}
+            className="focus:outline-none transition-all"
+            style={{ ...inputStyles, minHeight: "110px" }}
+          />
+        ) : (
+          <input
+            name={key}
+            type="text"
+            value={value}
+            onChange={handleMatchChange}
+            readOnly={isScoreField}
+            className="focus:outline-none transition-all"
+            style={{
+              ...inputStyles,
+              backgroundColor: isScoreField ? "rgba(0, 0, 0, 0.03)" : inputStyles.backgroundColor,
+              cursor: isScoreField ? "not-allowed" : "text",
+            }}
+          />
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen py-10 px-4">
@@ -356,84 +466,291 @@ export default function AdminDashboard() {
               Run the `match_state` migration before editing these fields.
             </p>
           )}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {Object.entries(match).map(([key, value]) => {
-              if (key === "non_striker") return null;
 
-              if (key === "current_batsman") {
-                return (
-                  <div
-                    key={key}
-                    className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-5"
+          <div className="space-y-6">
+            <section
+              className="rounded-2xl border border-[color:var(--border)] p-5 md:p-6"
+              style={{
+                background:
+                  "linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(250,246,240,0.95) 100%)",
+              }}
+            >
+              <h3
+                className="text-lg font-black uppercase tracking-wider mb-4"
+                style={{ color: "var(--primary)" }}
+              >
+                Record Delivery
+              </h3>
+
+              <p
+                className="text-xs font-bold uppercase tracking-widest mb-2"
+                style={{ color: "var(--silver)" }}
+              >
+                Runs
+              </p>
+              <div className="flex flex-wrap gap-3 mb-5">
+                {[0, 1, 2, 3, 4, 6].map((run) => (
+                  <button
+                    key={run}
+                    type="button"
+                    disabled={recordingDelivery}
+                    onClick={() => setSelectedRuns(run)}
+                    className="min-w-14 px-5 py-3 rounded-xl border font-black text-lg transition-all"
+                    style={{
+                      borderColor: selectedRuns === run ? "var(--primary)" : "var(--border)",
+                      color: selectedRuns === run ? "var(--primary)" : "var(--silver)",
+                      backgroundColor:
+                        selectedRuns === run
+                          ? "rgba(128, 0, 32, 0.08)"
+                          : "rgba(255, 255, 255, 0.75)",
+                      opacity: recordingDelivery ? 0.7 : 1,
+                      cursor: recordingDelivery ? "not-allowed" : "pointer",
+                    }}
                   >
-                    <div>
-                      <label style={labelStyles}>current batsman</label>
-                      <input
-                        name="current_batsman"
-                        type="text"
-                        value={String(match.current_batsman ?? "")}
-                        onChange={handleMatchChange}
-                        className="focus:outline-none transition-all"
-                        style={inputStyles}
-                      />
-                    </div>
-                    <div>
-                      <label style={labelStyles}>non striker</label>
-                      <input
-                        name="non_striker"
-                        type="text"
-                        value={String(match.non_striker ?? "")}
-                        onChange={handleMatchChange}
-                        className="focus:outline-none transition-all"
-                        style={inputStyles}
-                      />
+                    {run === 0 ? "Dot" : run}
+                  </button>
+                ))}
+              </div>
+
+              <p
+                className="text-xs font-bold uppercase tracking-widest mb-2"
+                style={{ color: "var(--silver)" }}
+              >
+                Extras
+              </p>
+              <div className="flex flex-wrap gap-3 mb-5">
+                {[
+                  { key: "none", label: "None" },
+                  { key: "wd", label: "WD Wide" },
+                  { key: "nb", label: "NB No Ball" },
+                  { key: "bye", label: "Bye" },
+                  { key: "legbye", label: "Leg Bye" },
+                ].map((extra) => (
+                  <button
+                    key={extra.key}
+                    type="button"
+                    disabled={recordingDelivery}
+                    onClick={() => setSelectedExtra(extra.key as ExtraType)}
+                    className="px-4 py-3 rounded-xl border font-bold text-sm transition-all"
+                    style={{
+                      borderColor:
+                        selectedExtra === extra.key ? "var(--primary)" : "var(--border)",
+                      color: selectedExtra === extra.key ? "var(--primary)" : "var(--silver)",
+                      backgroundColor:
+                        selectedExtra === extra.key
+                          ? "rgba(128, 0, 32, 0.08)"
+                          : "rgba(255, 255, 255, 0.75)",
+                      opacity: recordingDelivery ? 0.7 : 1,
+                      cursor: recordingDelivery ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    {extra.label}
+                  </button>
+                ))}
+              </div>
+
+              <p
+                className="text-xs font-bold uppercase tracking-widest mb-2"
+                style={{ color: "var(--silver)" }}
+              >
+                Wicket Type
+              </p>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {[
+                  { value: "bowled", label: "Bowled" },
+                  { value: "caught", label: "Caught" },
+                  { value: "lbw", label: "LBW" },
+                  { value: "run_out", label: "Run Out" },
+                  { value: "stumped", label: "Stumped" },
+                  { value: "hit_wicket", label: "Hit Wicket" },
+                ].map((wicket) => (
+                  <button
+                    key={wicket.value}
+                    type="button"
+                    disabled={recordingDelivery}
+                    onClick={() => setSelectedWicket(wicket.value as WicketType)}
+                    className="px-3 py-2 rounded-lg border text-sm font-semibold transition-all"
+                    style={{
+                      borderColor:
+                        selectedWicket === wicket.value
+                          ? "var(--primary)"
+                          : "var(--border)",
+                      color:
+                        selectedWicket === wicket.value
+                          ? "var(--primary)"
+                          : "var(--silver)",
+                      backgroundColor:
+                        selectedWicket === wicket.value
+                          ? "rgba(128, 0, 32, 0.08)"
+                          : "rgba(255, 255, 255, 0.75)",
+                      opacity: recordingDelivery ? 0.7 : 1,
+                      cursor: recordingDelivery ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    {wicket.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  disabled={recordingDelivery}
+                  onClick={() => applyDelivery(false)}
+                  className="cta-btn secondary"
+                  style={{
+                    width: "100%",
+                    opacity: recordingDelivery ? 0.7 : 1,
+                    cursor: recordingDelivery ? "not-allowed" : "pointer",
+                  }}
+                >
+                  {recordingDelivery ? "Recording..." : "Record Ball"}
+                </button>
+                <button
+                  type="button"
+                  disabled={recordingDelivery}
+                  onClick={() => applyDelivery(true)}
+                  className="cta-btn"
+                  style={{
+                    width: "100%",
+                    opacity: recordingDelivery ? 0.7 : 1,
+                    cursor: recordingDelivery ? "not-allowed" : "pointer",
+                  }}
+                >
+                  Record Wicket
+                </button>
+              </div>
+
+              <div className="mt-4">
+                <label style={labelStyles}>
+                  Commentary (optional)
+                </label>
+                <input
+                  type="text"
+                  disabled={recordingDelivery}
+                  value={deliveryComment}
+                  onChange={(e) => setDeliveryComment(e.target.value)}
+                  placeholder="e.g. Edge past second slip for a boundary"
+                  className="focus:outline-none transition-all"
+                  style={{
+                    ...inputStyles,
+                    backgroundColor: "var(--input)",
+                    color: "var(--silver)",
+                  }}
+                />
+              </div>
+            </section>
+
+            <section className="rounded-xl border border-[color:var(--border)] p-5 bg-white/60">
+              <h3 className="text-lg font-black mb-4" style={{ color: "var(--primary)" }}>
+                Teams & Live Score
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {([
+                  "team_a_name",
+                  "team_b_name",
+                  "batting_team",
+                  "runs",
+                  "wickets",
+                  "overs",
+                  "recent_balls",
+                ] as MatchFieldKey[]).map((field) => renderMatchField(field))}
+              </div>
+            </section>
+
+            <section className="rounded-xl border border-[color:var(--border)] p-5 bg-white/60">
+              <h3 className="text-lg font-black mb-4" style={{ color: "var(--primary)" }}>
+                Batting Pair
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {([
+                  "current_batsman",
+                  "non_striker",
+                  "current_batsman_stats",
+                  "non_striker_stats",
+                  "partnership",
+                ] as MatchFieldKey[]).map((field) => renderMatchField(field))}
+              </div>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <button
+                  onClick={() => void handleSwapStrikers()}
+                  className="cta-btn secondary"
+                >
+                  Swap Striker / Non-Striker
+                </button>
+                <button
+                  onClick={() => void handleEndOver()}
+                  className="cta-btn secondary"
+                >
+                  End Over (Swap Batters)
+                </button>
+              </div>
+              <button onClick={() => void saveMatch()} className="mt-5 cta-btn secondary">
+                Update Data
+              </button>
+            </section>
+
+            <section className="rounded-xl border border-[color:var(--border)] p-5 bg-white/60">
+              <h3 className="text-lg font-black mb-4" style={{ color: "var(--primary)" }}>
+                Bowler
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {(["current_bowler", "current_bowler_stats"] as MatchFieldKey[]).map(
+                  (field) => renderMatchField(field),
+                )}
+              </div>
+              <button onClick={() => void saveMatch()} className="mt-5 cta-btn secondary">
+                Update Data
+              </button>
+            </section>
+
+            <section className="rounded-xl border border-[color:var(--border)] p-5 bg-white/60">
+              <h3 className="text-lg font-black mb-4" style={{ color: "var(--primary)" }}>
+                Series & Match Intro
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {([
+                  "series_name",
+                  "match_logo_url",
+                  "match_description",
+                ] as MatchFieldKey[]).map((field) => renderMatchField(field))}
+              </div>
+              <button onClick={() => void saveMatch()} className="mt-5 cta-btn secondary">
+                Update Data
+              </button>
+            </section>
+
+            <section className="rounded-xl border border-[color:var(--border)] p-5 bg-white/60">
+              <h3 className="text-lg font-black mb-4" style={{ color: "var(--primary)" }}>
+                Upcoming Matches
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {[1, 2, 3, 4].map((num) => (
+                  <div
+                    key={num}
+                    className="rounded-xl border border-[color:var(--border)] p-4 bg-white/70"
+                  >
+                    <p
+                      className="mb-3 text-sm font-bold uppercase tracking-widest"
+                      style={{ color: "var(--primary)" }}
+                    >
+                      Match {num}
+                    </p>
+                    <div className="grid grid-cols-1 gap-4">
+                      {renderMatchField(`match_${num}_date` as MatchFieldKey)}
+                      {renderMatchField(`match_${num}_time` as MatchFieldKey)}
+                      {renderMatchField(`match_${num}_venue` as MatchFieldKey)}
+                      {renderMatchField(`match_${num}_format` as MatchFieldKey)}
                     </div>
                   </div>
-                );
-              }
+                ))}
+              </div>
+              <button onClick={() => void saveMatch()} className="mt-5 cta-btn secondary">
+                Update Data
+              </button>
+            </section>
+          </div>
 
-              return (
-                <div
-                  key={key}
-                  className={key === "match_description" ? "md:col-span-2" : ""}
-                >
-                  <label style={labelStyles}>{key.replaceAll("_", " ")}</label>
-                  {key === "match_description" ? (
-                    <textarea
-                      name={key}
-                      value={String(value ?? "")}
-                      onChange={handleMatchChange}
-                      className="focus:outline-none transition-all"
-                      style={{ ...inputStyles, minHeight: "110px" }}
-                    />
-                  ) : (
-                    <input
-                      name={key}
-                      type="text"
-                      value={String(value ?? "")}
-                      onChange={handleMatchChange}
-                      className="focus:outline-none transition-all"
-                      style={inputStyles}
-                    />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <button
-              onClick={() => void handleSwapStrikers()}
-              className="cta-btn secondary"
-            >
-              Swap Striker / Non-Striker
-            </button>
-            <button
-              onClick={() => void handleEndOver()}
-              className="cta-btn secondary"
-            >
-              End Over (Swap Batters)
-            </button>
-          </div>
           <button onClick={saveMatch} className="mt-6 cta-btn">
             Save Match Info
           </button>
@@ -618,9 +935,6 @@ export default function AdminDashboard() {
             </table>
           </div>
 
-          <button onClick={saveAllPlayers} className="mt-6 cta-btn">
-            {saving ? "Saving..." : "Save All Players"}
-          </button>
         </div>
       </div>
     </div>
