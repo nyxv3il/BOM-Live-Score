@@ -204,6 +204,21 @@ a {
   padding: 0.35rem 0.62rem;
 }
 
+.ball-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  border: 2px solid rgba(128, 0, 32, 0.7);
+  background: #fffdf8;
+  color: #7b1028;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
 .neon-card {
   border: 1px solid rgba(128, 0, 32, 0.24);
   border-radius: 1rem;

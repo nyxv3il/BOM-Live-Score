@@ -127,8 +127,20 @@ export default function ScoreBoard() {
   const runRate =
     match.overs > 0 ? (match.runs / match.overs).toFixed(2) : "0.00";
   const recentBalls = match.recent_balls?.split(" ").filter(Boolean) ?? [];
+  const displayBall = (ball: string): string => {
+    const token = ball.trim().toUpperCase();
+    if (!token) return "";
+    if (token === ".") return "0";
+    if (token.startsWith("WD")) return "WD";
+    if (token.startsWith("NB")) return "NB";
+    if (token.includes("W")) return "W";
+    if (/^\d+$/.test(token)) return token;
+    return token.slice(0, 2);
+  };
   const bowlingTeam =
-    match.batting_team === match.team_a_name ? match.team_b_name : match.team_a_name;
+    match.batting_team === match.team_a_name
+      ? match.team_b_name
+      : match.team_a_name;
   const timeline = [
     {
       match: "Test Match - Day 1",
@@ -219,6 +231,15 @@ export default function ScoreBoard() {
         <p className="text-xl font-semibold text-[color:var(--muted)]">
           {match.overs} overs | RR {runRate}
         </p>
+        {recentBalls.length > 0 && (
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+            {recentBalls.map((ball, i) => (
+              <span key={`score-panel-${ball}-${i}`} className="ball-dot">
+                {displayBall(ball)}
+              </span>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="mb-10 w-full max-w-5xl space-y-6">
@@ -230,7 +251,9 @@ export default function ScoreBoard() {
             <h2 className="text-2xl font-bold text-[color:var(--primary)]">
               {match.batting_team || "-"}
             </h2>
-            <span className="hero-pill !mb-0 !py-2 !text-[0.68rem]">Live Batting</span>
+            <span className="hero-pill !mb-0 !py-2 !text-[0.68rem]">
+              Live Batting
+            </span>
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <article className="metric-card p-5">
@@ -309,8 +332,8 @@ export default function ScoreBoard() {
           {recentBalls.length > 0 ? (
             <div className="flex flex-wrap gap-2">
               {recentBalls.map((ball, i) => (
-                <span key={`${ball}-${i}`} className="ball-chip">
-                  {ball}
+                <span key={`${ball}-${i}`} className="ball-dot">
+                  {displayBall(ball)}
                 </span>
               ))}
             </div>
