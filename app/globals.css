@@ -204,6 +204,21 @@ a {
   padding: 0.35rem 0.62rem;
 }
 
+.ball-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  border: 2px solid rgba(128, 0, 32, 0.7);
+  background: #fffdf8;
+  color: #7b1028;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
 .neon-card {
   border: 1px solid rgba(128, 0, 32, 0.24);
   border-radius: 1rem;
@@ -213,4 +228,38 @@ a {
 
 .neon-text {
   text-shadow: 0 6px 18px rgba(128, 0, 32, 0.18);
+}
+
+.site-footer {
+  margin-top: 2rem;
+  border-top: 1px solid rgba(128, 0, 32, 0.2);
+  background: rgba(255, 250, 242, 0.92);
+  backdrop-filter: blur(8px);
+}
+
+.site-footer__inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0.9rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.site-footer__logo {
+  height: 48px;
+  /* border: 1px solid rgba(128, 0, 32, 0.25); */
+  /* background: rgba(255, 255, 255, 0.85); */
+  object-fit: scale-down;
+  /* box-shadow: 0 6px 16px rgba(128, 0, 32, 0.12); */
+}
+
+.site-footer__text {
+  margin: 0;
+  color: var(--primary);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-align: center;
 }

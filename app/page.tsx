@@ -8,6 +8,14 @@ interface MatchState {
   created_at: string;
   team_a_name: string;
   team_b_name: string;
+  match_status: string | null;
+  inning: number | null;
+  team_a_runs: number | null;
+  team_a_wickets: number | null;
+  team_a_overs: number | null;
+  team_b_runs: number | null;
+  team_b_wickets: number | null;
+  team_b_overs: number | null;
   batting_team: string;
   runs: number;
   wickets: number;
@@ -46,6 +54,14 @@ const fallbackMatch: MatchState = {
   created_at: "",
   team_a_name: "School A",
   team_b_name: "School B",
+  match_status: "scheduled",
+  inning: 1,
+  team_a_runs: 0,
+  team_a_wickets: 0,
+  team_a_overs: 0,
+  team_b_runs: 0,
+  team_b_wickets: 0,
+  team_b_overs: 0,
   batting_team: "School A",
   runs: 0,
   wickets: 0,
@@ -126,7 +142,36 @@ export default function ScoreBoard() {
 
   const runRate =
     match.overs > 0 ? (match.runs / match.overs).toFixed(2) : "0.00";
+  const teamAScore = `${match.team_a_runs ?? 0}/${match.team_a_wickets ?? 0} (${match.team_a_overs ?? 0})`;
+  const teamBScore = `${match.team_b_runs ?? 0}/${match.team_b_wickets ?? 0} (${match.team_b_overs ?? 0})`;
+  const currentInning = Number(match.inning ?? 1);
+  const previousBattingTeam =
+    currentInning > 1
+      ? match.batting_team === match.team_a_name
+        ? match.team_b_name
+        : match.team_a_name
+      : null;
+  const previousScore =
+    previousBattingTeam === match.team_a_name
+      ? teamAScore
+      : previousBattingTeam === match.team_b_name
+        ? teamBScore
+        : null;
   const recentBalls = match.recent_balls?.split(" ").filter(Boolean) ?? [];
+  const displayBall = (ball: string): string => {
+    const token = ball.trim().toUpperCase();
+    if (!token) return "";
+    if (token === ".") return "0";
+    if (token.startsWith("WD")) return "WD";
+    if (token.startsWith("NB")) return "NB";
+    if (token.includes("W")) return "W";
+    if (/^\d+$/.test(token)) return token;
+    return token.slice(0, 2);
+  };
+  const bowlingTeam =
+    match.batting_team === match.team_a_name
+      ? match.team_b_name
+      : match.team_a_name;
   const timeline = [
     {
       match: "Test Match - Day 1",
@@ -211,84 +256,120 @@ export default function ScoreBoard() {
         <p className="mb-2 text-sm uppercase tracking-[0.22em] text-[color:var(--primary)]/90">
           Current Score
         </p>
+        {previousBattingTeam && previousScore && (
+          <p className="mb-1 text-sm font-semibold text-[color:var(--muted)]">
+            {previousBattingTeam}: {previousScore}
+          </p>
+        )}
         <p className="mb-2 text-6xl font-black text-[color:var(--primary)] md:text-8xl">
           {match.runs}/{match.wickets}
         </p>
         <p className="text-xl font-semibold text-[color:var(--muted)]">
           {match.overs} overs | RR {runRate}
         </p>
+        {recentBalls.length > 0 && (
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+            {recentBalls.map((ball, i) => (
+              <span key={`score-panel-${ball}-${i}`} className="ball-dot">
+                {displayBall(ball)}
+              </span>
+            ))}
+          </div>
+        )}
       </section>
 
-      <section className="mb-10 grid w-full max-w-5xl grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <article className="metric-card p-5">
-          <p className="mb-1 text-xs uppercase tracking-[0.2em] text-[color:var(--muted)]/80">
-            Team A
+      <section className="mb-10 w-full max-w-5xl space-y-6">
+        <article className="neon-card p-5 md:p-6">
+          <p className="mb-4 text-xs uppercase tracking-[0.2em] text-[color:var(--primary)]/80">
+            Batting Team
           </p>
-          <h2 className="text-2xl font-bold">{match.team_a_name}</h2>
-          <p className="mt-2 text-sm text-[color:var(--muted)]/80">
-            {match.batting_team === match.team_a_name
-              ? "● Batting"
-              : "◯ Fielding"}
+          <div className="mb-4 flex flex-wrap items-center gap-3">
+            <h2 className="text-2xl font-bold text-[color:var(--primary)]">
+              {match.batting_team || "-"}
+            </h2>
+            <span className="hero-pill !mb-0 !py-2 !text-[0.68rem]">
+              Live Batting
+            </span>
+          </div>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <article className="metric-card p-5">
+              <p className="mb-1 text-xs uppercase tracking-[0.2em] text-[color:var(--primary)]/80">
+                On Strike
+              </p>
+              <h3 className="text-2xl font-bold text-[color:var(--primary)]">
+                {match.current_batsman || "-"}
+              </h3>
+              <p className="mt-2 text-sm text-[color:var(--muted)]/80">
+                {match.current_batsman_stats || "-"}
+              </p>
+            </article>
+
+            <article className="metric-card p-5">
+              <p className="mb-1 text-xs uppercase tracking-[0.2em] text-[color:var(--muted)]/80">
+                Non-Striker
+              </p>
+              <h3 className="text-2xl font-bold text-[color:var(--muted)]">
+                {match.non_striker || "-"}
+              </h3>
+              <p className="mt-2 text-sm text-[color:var(--muted)]/80">
+                {match.non_striker_stats || "-"}
+              </p>
+            </article>
+
+            <article className="metric-card p-5">
+              <p className="mb-1 text-xs uppercase tracking-[0.2em] text-[color:var(--muted)]/80">
+                Partnership
+              </p>
+              <h3 className="text-2xl font-bold text-[color:var(--muted)]">
+                {match.partnership || "-"}
+              </h3>
+              <p className="mt-2 text-sm text-[color:var(--muted)]/80">
+                Current partnership
+              </p>
+            </article>
+          </div>
+        </article>
+
+        <article className="neon-card p-5 md:p-6">
+          <p className="mb-4 text-xs uppercase tracking-[0.2em] text-[color:var(--muted)]/80">
+            Bowling Team
           </p>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <article className="metric-card p-5">
+              <p className="mb-1 text-xs uppercase tracking-[0.2em] text-[color:var(--muted)]/80">
+                Team
+              </p>
+              <h3 className="text-2xl font-bold text-[color:var(--muted)]">
+                {bowlingTeam}
+              </h3>
+              <p className="mt-2 text-sm text-[color:var(--muted)]/80">
+                Fielding side
+              </p>
+            </article>
+
+            <article className="metric-card p-5">
+              <p className="mb-1 text-xs uppercase tracking-[0.2em] text-[color:var(--muted)]/80">
+                Current Bowler
+              </p>
+              <h3 className="text-2xl font-bold text-[color:var(--muted)]">
+                {match.current_bowler || "-"}
+              </h3>
+              <p className="mt-2 text-sm text-[color:var(--muted)]/80">
+                {match.current_bowler_stats || "-"}
+              </p>
+            </article>
+          </div>
         </article>
 
         <article className="metric-card p-5">
-          <p className="mb-1 text-xs uppercase tracking-[0.2em] text-[color:var(--primary)]/80">
-            On Strike
-          </p>
-          <h2 className="text-2xl font-bold text-[color:var(--primary)]">
-            {match.current_batsman || "-"}
-          </h2>
-          <p className="mt-2 text-sm text-[color:var(--muted)]/80">
-            {match.current_batsman_stats || "-"}
-          </p>
-        </article>
-
-        <article className="metric-card p-5">
-          <p className="mb-1 text-xs uppercase tracking-[0.2em] text-[color:var(--muted)]/80">
-            Non-Striker
-          </p>
-          <h2 className="text-2xl font-bold text-[color:var(--muted)]">
-            {match.non_striker || "-"}
-          </h2>
-          <p className="mt-2 text-sm text-[color:var(--muted)]/80">
-            {match.non_striker_stats || "-"}
-          </p>
-        </article>
-
-        <article className="metric-card p-5">
-          <p className="mb-1 text-xs uppercase tracking-[0.2em] text-[color:var(--muted)]/80">
-            Bowler
-          </p>
-          <h2 className="text-2xl font-bold text-[color:var(--muted)]">
-            {match.current_bowler || "-"}
-          </h2>
-          <p className="mt-2 text-sm text-[color:var(--muted)]/80">
-            {match.current_bowler_stats || "-"}
-          </p>
-        </article>
-
-        <article className="metric-card p-5">
-          <p className="mb-1 text-xs uppercase tracking-[0.2em] text-[color:var(--muted)]/80">
-            Partnership
-          </p>
-          <h2 className="text-2xl font-bold text-[color:var(--muted)]">
-            {match.partnership || "-"}
-          </h2>
-          <p className="mt-2 text-sm text-[color:var(--muted)]/80">
-            Current partnership
-          </p>
-        </article>
-
-        <article className="metric-card p-5 md:col-span-2 lg:col-span-3">
           <p className="mb-3 text-xs uppercase tracking-[0.2em] text-[color:var(--primary)]/80">
             Recent Balls
           </p>
           {recentBalls.length > 0 ? (
             <div className="flex flex-wrap gap-2">
               {recentBalls.map((ball, i) => (
-                <span key={`${ball}-${i}`} className="ball-chip">
-                  {ball}
+                <span key={`${ball}-${i}`} className="ball-dot">
+                  {displayBall(ball)}
                 </span>
               ))}
             </div>
