@@ -8,6 +8,14 @@ interface MatchState {
   created_at: string;
   team_a_name: string;
   team_b_name: string;
+  match_status: string | null;
+  inning: number | null;
+  team_a_runs: number | null;
+  team_a_wickets: number | null;
+  team_a_overs: number | null;
+  team_b_runs: number | null;
+  team_b_wickets: number | null;
+  team_b_overs: number | null;
   batting_team: string;
   runs: number;
   wickets: number;
@@ -46,6 +54,14 @@ const fallbackMatch: MatchState = {
   created_at: "",
   team_a_name: "School A",
   team_b_name: "School B",
+  match_status: "scheduled",
+  inning: 1,
+  team_a_runs: 0,
+  team_a_wickets: 0,
+  team_a_overs: 0,
+  team_b_runs: 0,
+  team_b_wickets: 0,
+  team_b_overs: 0,
   batting_team: "School A",
   runs: 0,
   wickets: 0,
@@ -126,6 +142,21 @@ export default function ScoreBoard() {
 
   const runRate =
     match.overs > 0 ? (match.runs / match.overs).toFixed(2) : "0.00";
+  const teamAScore = `${match.team_a_runs ?? 0}/${match.team_a_wickets ?? 0} (${match.team_a_overs ?? 0})`;
+  const teamBScore = `${match.team_b_runs ?? 0}/${match.team_b_wickets ?? 0} (${match.team_b_overs ?? 0})`;
+  const currentInning = Number(match.inning ?? 1);
+  const previousBattingTeam =
+    currentInning > 1
+      ? match.batting_team === match.team_a_name
+        ? match.team_b_name
+        : match.team_a_name
+      : null;
+  const previousScore =
+    previousBattingTeam === match.team_a_name
+      ? teamAScore
+      : previousBattingTeam === match.team_b_name
+        ? teamBScore
+        : null;
   const recentBalls = match.recent_balls?.split(" ").filter(Boolean) ?? [];
   const displayBall = (ball: string): string => {
     const token = ball.trim().toUpperCase();
@@ -225,6 +256,11 @@ export default function ScoreBoard() {
         <p className="mb-2 text-sm uppercase tracking-[0.22em] text-[color:var(--primary)]/90">
           Current Score
         </p>
+        {previousBattingTeam && previousScore && (
+          <p className="mb-1 text-sm font-semibold text-[color:var(--muted)]">
+            {previousBattingTeam}: {previousScore}
+          </p>
+        )}
         <p className="mb-2 text-6xl font-black text-[color:var(--primary)] md:text-8xl">
           {match.runs}/{match.wickets}
         </p>
