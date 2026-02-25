@@ -19,7 +19,6 @@
       { href: "./index.html", label: "Home", key: "index.html" },
       { href: "./summary.html", label: "Summary", key: "summary.html" },
       { href: "./credits.html", label: "Credits", key: "credits.html" },
-      { href: "./admin-dashboard.html", label: "Admin", key: "admin-dashboard.html" },
     ];
 
     var desktop = links
@@ -74,4 +73,3 @@
   window.escapeHtml = escapeHtml;
   renderNav();
 })();
-
