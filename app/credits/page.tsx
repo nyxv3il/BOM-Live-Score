@@ -16,7 +16,7 @@ export default function CreditsPage() {
         <p className="mb-4 text-xl font-black uppercase tracking-[0.14em] text-[color:var(--primary)] md:text-2xl">
           Media Partnership By ACBU
         </p>
-        <div className="mx-auto w-fit rounded-2xl border border-[color:var(--border)] bg-white/80 p-4 shadow-[0_10px_28px_rgba(128,0,32,0.14)]">
+        <div className="mx-auto flex w-fit items-center gap-4 rounded-2xl border border-[color:var(--border)] bg-white/80 p-4 shadow-[0_10px_28px_rgba(128,0,32,0.14)]">
           <Image
             src="/acbu.png"
             alt="ACBU logo"
@@ -24,6 +24,13 @@ export default function CreditsPage() {
             height={280}
             className="h-auto w-[180px] md:w-[230px]"
             priority
+          />
+          <Image
+            src="/acbu_sports.png"
+            alt="ACBU Sports logo"
+            width={280}
+            height={280}
+            className="h-auto w-[180px] md:w-[230px]"
           />
         </div>
       </section>
