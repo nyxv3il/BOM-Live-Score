@@ -3,7 +3,7 @@ import Link from "next/link";
 const teamMembers = [
   { name: "Navitha Aken", role: "Frontend Developer" },
   { name: "Senura Perera", role: "Frontend Developer" },
-  { name: "Vidul Sankalpa", role: "Backend Developer" },
+  { name: "Vidul Batawala", role: "Backend Developer" },
   { name: "Dulina Duljaya", role: "Backend Developer" },
   { name: "Yesith Sankalpa", role: "Backend Developer" },
 ];
