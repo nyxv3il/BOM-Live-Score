@@ -100,6 +100,8 @@ export default function ScoreBoard() {
   const [match, setMatch] = useState<MatchState | null>(
     supabase ? null : fallbackMatch,
   );
+  const [sharingSnapshot, setSharingSnapshot] = useState(false);
+  const [recentOverOffset, setRecentOverOffset] = useState(0);
 
   useEffect(() => {
     const client = supabase;
@@ -158,6 +160,56 @@ export default function ScoreBoard() {
         ? teamBScore
         : null;
   const recentBalls = match.recent_balls?.split(" ").filter(Boolean) ?? [];
+  const getOverGroups = (allBalls: string[]): string[][] => {
+    const groups: string[][] = [[]];
+    allBalls.forEach((ball) => {
+      if (ball === "|") {
+        if (groups[groups.length - 1].length > 0) groups.push([]);
+        return;
+      }
+      groups[groups.length - 1].push(ball);
+    });
+    return groups.filter((group) => group.length > 0);
+  };
+  const overGroups = getOverGroups(recentBalls);
+  const latestOverIndex = overGroups.length - 1;
+  const normalizedOverOffset =
+    latestOverIndex >= 0
+      ? Math.min(recentOverOffset, latestOverIndex)
+      : 0;
+  const activeOverIndex =
+    latestOverIndex >= 0 ? latestOverIndex - normalizedOverOffset : -1;
+  const activeOverBalls =
+    activeOverIndex >= 0 ? overGroups[activeOverIndex] : [];
+  const getLegalBallCountFromOvers = (oversValue: number): number => {
+    const wholeOvers = Math.floor(oversValue);
+    return Math.max(0, Math.round((oversValue - wholeOvers) * 10));
+  };
+  const isLegalDeliveryToken = (ball: string): boolean => {
+    const token = ball.trim().toUpperCase();
+    if (!token || token === "|") return false;
+    return !token.startsWith("WD") && !token.startsWith("NB");
+  };
+  const getCurrentOverBalls = (allBalls: string[]): string[] => {
+    const boundaryIndex = allBalls.lastIndexOf("|");
+    const tail = allBalls.slice(boundaryIndex + 1).filter((ball) => ball !== "|");
+    const currentOverLegalBalls = getLegalBallCountFromOvers(Number(match.overs) || 0);
+
+    if (currentOverLegalBalls <= 0) return tail;
+
+    const currentOver: string[] = [];
+    let legalSeen = 0;
+    for (let i = tail.length - 1; i >= 0; i -= 1) {
+      const ball = tail[i];
+      currentOver.unshift(ball);
+      if (isLegalDeliveryToken(ball)) {
+        legalSeen += 1;
+      }
+      if (legalSeen >= currentOverLegalBalls) break;
+    }
+    return currentOver;
+  };
+  const currentOverBalls = getCurrentOverBalls(recentBalls);
   const displayBall = (ball: string): string => {
     const token = ball.trim().toUpperCase();
     if (!token) return "";
@@ -172,6 +224,102 @@ export default function ScoreBoard() {
     match.batting_team === match.team_a_name
       ? match.team_b_name
       : match.team_a_name;
+  const handleShareSnapshot = async () => {
+    if (sharingSnapshot) return;
+    setSharingSnapshot(true);
+
+    try {
+      const canvas = document.createElement("canvas");
+      canvas.width = 1080;
+      canvas.height = 1080;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Unable to create snapshot.");
+
+      const gradient = ctx.createLinearGradient(
+        0,
+        0,
+        canvas.width,
+        canvas.height,
+      );
+      gradient.addColorStop(0, "#fff9f2");
+      gradient.addColorStop(1, "#f3e7d9");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = "#800020";
+      ctx.font = "bold 54px system-ui";
+      ctx.fillText(`${match.team_a_name} vs ${match.team_b_name}`, 70, 120);
+
+      ctx.fillStyle = "#262626";
+      ctx.font = "bold 164px system-ui";
+      ctx.fillText(`${match.runs}/${match.wickets}`, 70, 320);
+
+      ctx.font = "bold 48px system-ui";
+      ctx.fillStyle = "#444";
+      ctx.fillText(`${match.overs} overs | RR ${runRate}`, 70, 390);
+
+      ctx.fillStyle = "#111";
+      ctx.font = "bold 42px system-ui";
+      ctx.fillText(`Batting: ${match.batting_team || "-"}`, 70, 500);
+      ctx.fillText(`Striker: ${match.current_batsman || "-"}`, 70, 565);
+      ctx.fillText(`Bowler: ${match.current_bowler || "-"}`, 70, 630);
+
+      ctx.fillStyle = "#800020";
+      ctx.font = "bold 36px system-ui";
+      ctx.fillText("Current Over", 70, 735);
+      ctx.fillStyle = "#333";
+      ctx.font = "bold 44px system-ui";
+      ctx.fillText(
+        currentOverBalls.length > 0
+          ? currentOverBalls.map((ball) => displayBall(ball)).join("  ")
+          : "No balls yet",
+        70,
+        790,
+      );
+
+      ctx.fillStyle = "#6a6a6a";
+      ctx.font = "32px system-ui";
+      ctx.fillText("Generated from Live Score App", 70, 980);
+
+      const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve, "image/png"),
+      );
+      if (!blob) throw new Error("Failed to create image file.");
+
+      const file = new File([blob], "live-score-snapshot.png", {
+        type: "image/png",
+      });
+      const canShareFiles =
+        typeof navigator.share === "function" &&
+        Boolean(
+          (navigator as { canShare?: (data: ShareData) => boolean }).canShare?.(
+            { files: [file] },
+          ),
+        );
+
+      if (canShareFiles) {
+        await navigator.share({
+          title: "Live Score Snapshot",
+          files: [file],
+        });
+      } else {
+        const objectUrl = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = objectUrl;
+        link.download = "live-score-snapshot.png";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(objectUrl);
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unable to share snapshot.";
+      alert(message);
+    } finally {
+      setSharingSnapshot(false);
+    }
+  };
   const timeline = [
     {
       match: "Test Match - Day 1",
@@ -267,9 +415,9 @@ export default function ScoreBoard() {
         <p className="text-xl font-semibold text-[color:var(--muted)]">
           {match.overs} overs | RR {runRate}
         </p>
-        {recentBalls.length > 0 && (
+        {currentOverBalls.length > 0 && (
           <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-            {recentBalls.map((ball, i) => (
+            {currentOverBalls.map((ball, i) => (
               <span key={`score-panel-${ball}-${i}`} className="ball-dot">
                 {displayBall(ball)}
               </span>
@@ -365,14 +513,43 @@ export default function ScoreBoard() {
           <p className="mb-3 text-xs uppercase tracking-[0.2em] text-[color:var(--primary)]/80">
             Recent Balls
           </p>
-          {recentBalls.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {recentBalls.map((ball, i) => (
-                <span key={`${ball}-${i}`} className="ball-dot">
-                  {displayBall(ball)}
-                </span>
-              ))}
-            </div>
+          {activeOverBalls.length > 0 ? (
+            <>
+              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-[color:var(--muted)]/80">
+                Over {activeOverIndex + 1} of {overGroups.length}
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  className="h-9 w-9 rounded-full border border-[color:var(--border)] text-[color:var(--primary)] disabled:opacity-40"
+                  disabled={activeOverIndex <= 0}
+                  onClick={() =>
+                    setRecentOverOffset((prev) => Math.min(prev + 1, latestOverIndex))
+                  }
+                  aria-label="Show previous over"
+                >
+                  <i className="fas fa-chevron-left"></i>
+                </button>
+                <div className="min-w-0 flex-1 overflow-x-auto">
+                  <div className="flex w-max flex-nowrap gap-2">
+                    {activeOverBalls.map((ball, i) => (
+                      <span key={`${ball}-${i}`} className="ball-dot">
+                        {displayBall(ball)}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="h-9 w-9 rounded-full border border-[color:var(--border)] text-[color:var(--primary)] disabled:opacity-40"
+                  disabled={activeOverIndex >= latestOverIndex}
+                  onClick={() => setRecentOverOffset((prev) => Math.max(prev - 1, 0))}
+                  aria-label="Show next over"
+                >
+                  <i className="fas fa-chevron-right"></i>
+                </button>
+              </div>
+            </>
           ) : (
             <p className="text-sm text-[color:var(--muted)]/70">
               No recent deliveries yet.
@@ -419,6 +596,26 @@ export default function ScoreBoard() {
           View Credits
         </Link>
       </section>
+
+      <button
+        type="button"
+        onClick={() => void handleShareSnapshot()}
+        disabled={sharingSnapshot}
+        className="cta-btn fixed bottom-6 right-6 z-40"
+        style={{
+          borderRadius: "9999px",
+          minWidth: "3.25rem",
+          minHeight: "3.25rem",
+          padding: "0.9rem",
+          opacity: sharingSnapshot ? 0.75 : 1,
+          cursor: sharingSnapshot ? "not-allowed" : "pointer",
+        }}
+        aria-label="Share snapshot"
+      >
+        <i
+          className={`fas ${sharingSnapshot ? "fa-spinner fa-spin" : "fa-share-nodes"}`}
+        ></i>
+      </button>
     </main>
   );
 }

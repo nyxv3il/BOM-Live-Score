@@ -361,15 +361,27 @@ export default function AdminDashboard() {
   };
 
   const handleEndOver = async () => {
+    const ballsPerOver = 6;
+    const legalBallsInCurrentOver = getCurrentOverLegalBalls(match.recent_balls);
+    if (legalBallsInCurrentOver < ballsPerOver) {
+      alert(
+        `This over has ${legalBallsInCurrentOver} legal balls. It must reach ${ballsPerOver} balls before ending.`,
+      );
+      return;
+    }
+
     const swappedMatch = applyDerivedMatchFields(swapStrikerFields(match), players);
-    const currentOvers = Number(swappedMatch.overs);
-    const nextOver = Number.isFinite(currentOvers)
-      ? Math.floor(currentOvers) + 1
-      : 1;
+    const currentOvers = Number(swappedMatch.overs) || 0;
+    const completedOvers = Math.floor(currentOvers);
+    const nextOver = Number(`${Math.max(completedOvers + 1, 0)}.0`);
 
     await persistMatch(
       applyDerivedMatchFields(
-        { ...swappedMatch, overs: nextOver, recent_balls: "" },
+        {
+          ...swappedMatch,
+          overs: nextOver,
+          recent_balls: pushRecentBall(swappedMatch.recent_balls, "|"),
+        },
         players,
       ),
       "Over ended and batters swapped.",
@@ -458,7 +470,6 @@ export default function AdminDashboard() {
         runs: nextInningsStats.runs,
         wickets: nextInningsStats.wickets,
         overs: nextInningsStats.overs,
-        recent_balls: "",
         current_batsman: "",
         non_striker: "",
         current_bowler: "",
@@ -472,13 +483,14 @@ export default function AdminDashboard() {
   const oversToBalls = (oversValue: number): number => {
     const wholeOvers = Math.floor(oversValue);
     const ballPart = Math.round((oversValue - wholeOvers) * 10);
-    return wholeOvers * 6 + Math.min(Math.max(ballPart, 0), 5);
+    return wholeOvers * 6 + Math.max(ballPart, 0);
   };
 
-  const ballsToOvers = (totalBalls: number): number => {
-    const wholeOvers = Math.floor(totalBalls / 6);
-    const ballPart = totalBalls % 6;
-    return Number(`${wholeOvers}.${ballPart}`);
+  const incrementOverBall = (oversValue: number): number => {
+    const safeOvers = Number(oversValue) || 0;
+    const wholeOvers = Math.floor(safeOvers);
+    const ballPart = Math.max(0, Math.round((safeOvers - wholeOvers) * 10));
+    return Number(`${wholeOvers}.${ballPart + 1}`);
   };
 
   const toBowlerRunsConceded = (player: PlayerScore): number => {
@@ -706,6 +718,20 @@ export default function AdminDashboard() {
     return [...history, event].join(" ");
   };
 
+  const isLegalDeliveryToken = (token: string): boolean => {
+    const value = token.trim().toUpperCase();
+    if (!value || value === "|") return false;
+    return !value.startsWith("WD") && !value.startsWith("NB");
+  };
+
+  const getCurrentOverLegalBalls = (recentBalls: string): number => {
+    const history = recentBalls.trim() ? recentBalls.trim().split(/\s+/) : [];
+    const lastOverBoundary = history.lastIndexOf("|");
+    const currentOverBalls =
+      lastOverBoundary >= 0 ? history.slice(lastOverBoundary + 1) : history;
+    return currentOverBalls.filter(isLegalDeliveryToken).length;
+  };
+
   const buildDeliveryEvent = (
     runs: number,
     extra: ExtraType,
@@ -742,8 +768,6 @@ export default function AdminDashboard() {
     const legalDelivery = selectedExtra !== "wd" && selectedExtra !== "nb";
     const baseRuns = selectedExtra === "wd" || selectedExtra === "nb" ? 1 : 0;
     const runIncrement = baseRuns + selectedRuns;
-    const currentBalls = oversToBalls(Number(match.overs) || 0);
-    const nextBalls = legalDelivery ? currentBalls + 1 : currentBalls;
     const ballEvent = buildDeliveryEvent(
       selectedRuns,
       selectedExtra,
@@ -794,9 +818,7 @@ export default function AdminDashboard() {
     if (bowlerIndex >= 0) {
       const bowler = { ...nextPlayers[bowlerIndex] };
       const currentBowlerBalls = oversToBalls(Number(bowler.overs) || 0);
-      const nextBowlerBalls = legalDelivery
-        ? currentBowlerBalls + 1
-        : currentBowlerBalls;
+      const nextBowlerBalls = currentBowlerBalls + (legalDelivery ? 1 : 0);
       const existingConceded = toBowlerRunsConceded(bowler);
       const runConcededIncrement =
         selectedExtra === "bye" || selectedExtra === "legbye" ? 0 : runIncrement;
@@ -804,7 +826,9 @@ export default function AdminDashboard() {
       const wicketCredit =
         withWicket && selectedWicket !== "run_out" ? 1 : 0;
 
-      bowler.overs = ballsToOvers(nextBowlerBalls);
+      bowler.overs = legalDelivery
+        ? incrementOverBall(Number(bowler.overs) || 0)
+        : Number(bowler.overs) || 0;
       bowler.wickets = Number(bowler.wickets) + wicketCredit;
       bowler.economy =
         nextBowlerBalls > 0 ? roundTo(nextConceded / (nextBowlerBalls / 6)) : 0;
@@ -816,11 +840,10 @@ export default function AdminDashboard() {
       ...match,
       runs: Number(match.runs) + runIncrement,
       wickets: Number(match.wickets) + (withWicket ? 1 : 0),
-      overs: ballsToOvers(nextBalls),
-      recent_balls:
-        legalDelivery && nextBalls % 6 === 0
-          ? ""
-          : pushRecentBall(match.recent_balls, ballEvent),
+      overs: legalDelivery
+        ? incrementOverBall(Number(match.overs) || 0)
+        : Number(match.overs) || 0,
+      recent_balls: pushRecentBall(match.recent_balls, ballEvent),
     };
     const nextDerivedMatch = applyDerivedMatchFields(
       withSyncedTeamInnings(nextMatch),
@@ -955,7 +978,6 @@ export default function AdminDashboard() {
           runs: innings.runs,
           wickets: innings.wickets,
           overs: innings.overs,
-          recent_balls: "",
           current_batsman: "",
           non_striker: "",
           current_bowler: "",
@@ -1255,6 +1277,19 @@ export default function AdminDashboard() {
                 >
                   Record Wicket
                 </button>
+                <button
+                  type="button"
+                  disabled={recordingDelivery}
+                  onClick={() => void handleEndOver()}
+                  className="cta-btn secondary"
+                  style={{
+                    width: "100%",
+                    opacity: recordingDelivery ? 0.7 : 1,
+                    cursor: recordingDelivery ? "not-allowed" : "pointer",
+                  }}
+                >
+                  End Over (Swap Batters)
+                </button>
               </div>
 
               <div className="mt-4">
@@ -1332,12 +1367,6 @@ export default function AdminDashboard() {
                   className="cta-btn secondary"
                 >
                   Swap Striker / Non-Striker
-                </button>
-                <button
-                  onClick={() => void handleEndOver()}
-                  className="cta-btn secondary"
-                >
-                  End Over (Swap Batters)
                 </button>
               </div>
               <button onClick={() => void saveMatch()} className="mt-5 cta-btn secondary">

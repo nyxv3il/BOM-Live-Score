@@ -2,6 +2,7 @@
 
 :root {
   --bg-top: #fffaf2;
+  --bg-mid: #fff6e8;
   --bg-bottom: #f7eddc;
   --panel: rgba(255, 249, 238, 0.88);
   --panel-strong: rgba(255, 255, 255, 0.95);
@@ -16,6 +17,7 @@
   --silver: #5f434c;
   --input: #fffdf8;
   --radius: 18px;
+  color-scheme: light;
 }
 
 * {
@@ -36,7 +38,7 @@ body {
     linear-gradient(
       130deg,
       var(--bg-top) 0%,
-      #fff6e8 52%,
+      var(--bg-mid) 52%,
       var(--bg-bottom) 100%
     );
   background-attachment: fixed;
@@ -91,8 +93,8 @@ a {
   position: sticky;
   top: 0;
   z-index: 40;
-  border-bottom: 1px solid rgba(128, 0, 32, 0.2);
-  background: rgba(255, 250, 242, 0.9);
+  border-bottom: 1px solid var(--border);
+  background: var(--panel-strong);
   backdrop-filter: blur(8px);
 }
 
@@ -105,7 +107,7 @@ a {
 }
 
 .nav-link {
-  color: #673041;
+  color: var(--muted);
   font-weight: 600;
   font-size: 0.95rem;
 }
@@ -123,7 +125,12 @@ a {
 }
 
 .hero-heading .gradient {
-  background: linear-gradient(105deg, #760018 14%, #982134 52%, #c9971a 94%);
+  background: linear-gradient(
+    105deg,
+    var(--primary) 14%,
+    var(--accent) 52%,
+    var(--gold) 94%
+  );
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -134,9 +141,9 @@ a {
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
-  border: 1px solid rgba(128, 0, 32, 0.35);
-  color: #7b1028;
-  background: rgba(255, 245, 224, 0.9);
+  border: 1px solid var(--border);
+  color: var(--primary);
+  background: var(--panel);
   border-radius: 999px;
   padding: 0.62rem 1.25rem;
   text-transform: uppercase;
@@ -146,9 +153,9 @@ a {
 }
 
 .meta-chip {
-  border: 1px solid rgba(128, 0, 32, 0.25);
-  background: rgba(255, 255, 255, 0.86);
-  color: #4f2737;
+  border: 1px solid var(--border);
+  background: var(--panel-strong);
+  color: var(--muted);
   border-radius: 999px;
   font-size: 0.93rem;
   padding: 0.72rem 1.15rem;
@@ -168,9 +175,9 @@ a {
 }
 
 .cta-btn.secondary {
-  color: #7e1028;
-  background: rgba(255, 255, 255, 0.78);
-  border-color: rgba(128, 0, 32, 0.42);
+  color: var(--primary);
+  background: var(--panel-strong);
+  border-color: var(--border);
 }
 
 .score-panel {
@@ -178,8 +185,8 @@ a {
   border-radius: var(--radius);
   background: linear-gradient(
     155deg,
-    rgba(255, 252, 245, 0.96) 0%,
-    rgba(255, 243, 214, 0.9) 100%
+    var(--panel-strong) 0%,
+    var(--panel) 100%
   );
   box-shadow:
     0 14px 42px rgba(128, 0, 32, 0.08),
@@ -188,8 +195,8 @@ a {
 
 .metric-card {
   border-radius: 14px;
-  border: 1px solid rgba(128, 0, 32, 0.2);
-  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid var(--border);
+  background: var(--panel-strong);
 }
 
 .ball-chip {
@@ -197,9 +204,9 @@ a {
   min-width: 2rem;
   justify-content: center;
   border-radius: 10px;
-  border: 1px solid rgba(128, 0, 32, 0.42);
-  background: rgba(255, 248, 230, 0.95);
-  color: #7b1028;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--primary);
   font-weight: 700;
   padding: 0.35rem 0.62rem;
 }
@@ -211,18 +218,18 @@ a {
   width: 2rem;
   height: 2rem;
   border-radius: 999px;
-  border: 2px solid rgba(128, 0, 32, 0.7);
-  background: #fffdf8;
-  color: #7b1028;
+  border: 2px solid var(--border);
+  background: var(--panel-strong);
+  color: var(--primary);
   font-size: 0.72rem;
   font-weight: 700;
   line-height: 1;
 }
 
 .neon-card {
-  border: 1px solid rgba(128, 0, 32, 0.24);
+  border: 1px solid var(--border);
   border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.88);
+  background: var(--panel-strong);
   box-shadow: 0 10px 28px rgba(128, 0, 32, 0.12);
 }
 
@@ -232,8 +239,8 @@ a {
 
 .site-footer {
   margin-top: 2rem;
-  border-top: 1px solid rgba(128, 0, 32, 0.2);
-  background: rgba(255, 250, 242, 0.92);
+  border-top: 1px solid var(--border);
+  background: var(--panel-strong);
   backdrop-filter: blur(8px);
 }
 
