@@ -172,25 +172,6 @@ const newPlayerRow: PlayerScore = {
   economy: 0,
 };
 
-const nalandaPlayers = [
-  "Osanda Pamuditha",
-  "Nadul Jayalath",
-  "Lithum Wijekuamara",
-  "Ranmith Dinuwara",
-  "Mihin Zoysa",
-  "Dunitha Anusara",
-  "Sahash Godage",
-  "Hasith Rathnayake",
-  "Sadew Wijesekara",
-  "Nemidu Akmeemana",
-  "Omith Rathnayake",
-  "Methuka Perera",
-  "Dunal Yenuka",
-  "Thiviru Ranasinghe",
-  "Gevindu Manamper",
-  "Malsha Fernando",
-];
-
 export default function AdminDashboard() {
   const [match, setMatch] = useState<MatchState>(defaultMatch);
   const [players, setPlayers] = useState<PlayerScore[]>([]);
@@ -212,18 +193,18 @@ export default function AdminDashboard() {
 
       const [{ data: matchData }, { data: playersData }, rosterResult] =
         await Promise.all([
-        supabase.from("match_state").select("*").eq("id", 1).single(),
-        supabase
-          .from("player_scores")
-          .select("*")
-          .order("team_name", { ascending: true })
-          .order("player_name", { ascending: true }),
-        supabase
-          .from("team_players")
-          .select("*")
-          .order("team_name", { ascending: true })
-          .order("player_name", { ascending: true }),
-      ]);
+          supabase.from("match_state").select("*").eq("id", 1).single(),
+          supabase
+            .from("player_scores")
+            .select("*")
+            .order("team_name", { ascending: true })
+            .order("player_name", { ascending: true }),
+          supabase
+            .from("team_players")
+            .select("*")
+            .order("team_name", { ascending: true })
+            .order("player_name", { ascending: true }),
+        ]);
 
       const nextPlayers = (playersData as PlayerScore[]) || [];
       const nextTeamPlayers = (rosterResult?.data as TeamPlayer[]) || [];
@@ -252,7 +233,10 @@ export default function AdminDashboard() {
               .select("*");
 
             if (!insertError && insertedRows) {
-              hydratedPlayers = [...nextPlayers, ...(insertedRows as PlayerScore[])];
+              hydratedPlayers = [
+                ...nextPlayers,
+                ...(insertedRows as PlayerScore[]),
+              ];
             }
           }
         }
@@ -325,7 +309,10 @@ export default function AdminDashboard() {
   };
 
   const saveMatch = async () => {
-    const derived = applyDerivedMatchFields(withSyncedTeamInnings(match), players);
+    const derived = applyDerivedMatchFields(
+      withSyncedTeamInnings(match),
+      players,
+    );
     await persistMatch(derived, "Match info updated.");
   };
 
@@ -367,13 +354,18 @@ export default function AdminDashboard() {
   };
 
   const handleSwapStrikers = async () => {
-    const swappedMatch = applyDerivedMatchFields(swapStrikerFields(match), players);
+    const swappedMatch = applyDerivedMatchFields(
+      swapStrikerFields(match),
+      players,
+    );
     await persistMatch(swappedMatch, "Striker and non-striker swapped.");
   };
 
   const handleEndOver = async () => {
     const ballsPerOver = 6;
-    const legalBallsInCurrentOver = getCurrentOverLegalBalls(match.recent_balls);
+    const legalBallsInCurrentOver = getCurrentOverLegalBalls(
+      match.recent_balls,
+    );
     if (legalBallsInCurrentOver < ballsPerOver) {
       alert(
         `This over has ${legalBallsInCurrentOver} legal balls. It must reach ${ballsPerOver} balls before ending.`,
@@ -381,7 +373,10 @@ export default function AdminDashboard() {
       return;
     }
 
-    const swappedMatch = applyDerivedMatchFields(swapStrikerFields(match), players);
+    const swappedMatch = applyDerivedMatchFields(
+      swapStrikerFields(match),
+      players,
+    );
     const currentOvers = Number(swappedMatch.overs) || 0;
     const completedOvers = Math.floor(currentOvers);
     const nextOver = Number(`${Math.max(completedOvers + 1, 0)}.0`);
@@ -400,7 +395,8 @@ export default function AdminDashboard() {
   };
 
   const handleMatchStart = async () => {
-    const battingTeam = match.batting_team || match.team_a_name || match.team_b_name;
+    const battingTeam =
+      match.batting_team || match.team_a_name || match.team_b_name;
     const innings = getTeamInnings(match, battingTeam);
     const nextMatch = applyDerivedMatchFields(
       withSyncedTeamInnings({
@@ -459,7 +455,10 @@ export default function AdminDashboard() {
       }),
       resetPlayers,
     );
-    const saved = await persistMatch(nextMatch, "Match ended and all scores reset.");
+    const saved = await persistMatch(
+      nextMatch,
+      "Match ended and all scores reset.",
+    );
     if (saved) setPlayers(resetPlayers);
   };
 
@@ -508,7 +507,10 @@ export default function AdminDashboard() {
     const balls = oversToBalls(Number(player.overs) || 0);
     if (balls <= 0) return 0;
     const oversAsFloat = balls / 6;
-    return Math.max(0, Math.round((Number(player.economy) || 0) * oversAsFloat));
+    return Math.max(
+      0,
+      Math.round((Number(player.economy) || 0) * oversAsFloat),
+    );
   };
 
   const formatBatterStats = (player?: PlayerScore): string =>
@@ -530,7 +532,9 @@ export default function AdminDashboard() {
   };
 
   const getBowlingTeam = (state: MatchState): string =>
-    state.batting_team === state.team_a_name ? state.team_b_name : state.team_a_name;
+    state.batting_team === state.team_a_name
+      ? state.team_b_name
+      : state.team_a_name;
 
   const getTeamInnings = (
     state: MatchState,
@@ -552,7 +556,9 @@ export default function AdminDashboard() {
   };
 
   const withSyncedTeamInnings = (state: MatchState): MatchState => {
-    if (normalizeName(state.batting_team) === normalizeName(state.team_a_name)) {
+    if (
+      normalizeName(state.batting_team) === normalizeName(state.team_a_name)
+    ) {
       return {
         ...state,
         team_a_runs: Number(state.runs) || 0,
@@ -561,7 +567,9 @@ export default function AdminDashboard() {
       };
     }
 
-    if (normalizeName(state.batting_team) === normalizeName(state.team_b_name)) {
+    if (
+      normalizeName(state.batting_team) === normalizeName(state.team_b_name)
+    ) {
       return {
         ...state,
         team_b_runs: Number(state.runs) || 0,
@@ -607,7 +615,9 @@ export default function AdminDashboard() {
     };
   };
 
-  const persistPlayers = async (nextPlayers: PlayerScore[]): Promise<boolean> => {
+  const persistPlayers = async (
+    nextPlayers: PlayerScore[],
+  ): Promise<boolean> => {
     if (!supabase) return false;
     const rowsToSave = nextPlayers.filter((player) => player.id);
     if (rowsToSave.length === 0) return true;
@@ -651,7 +661,8 @@ export default function AdminDashboard() {
     );
 
     const missing = roster.filter(
-      (player) => !existingSet.has(playerKey(player.team_name, player.player_name)),
+      (player) =>
+        !existingSet.has(playerKey(player.team_name, player.player_name)),
     );
     if (missing.length === 0) return existingPlayers;
 
@@ -671,7 +682,9 @@ export default function AdminDashboard() {
 
     return [
       ...existingPlayers,
-      ...(((data as PlayerScore[]) || []).map((row) => ({ ...row })) as PlayerScore[]),
+      ...(((data as PlayerScore[]) || []).map((row) => ({
+        ...row,
+      })) as PlayerScore[]),
     ];
   };
 
@@ -722,47 +735,6 @@ export default function AdminDashboard() {
     }
 
     setTeamPlayers((prev) => prev.filter((row) => row.id !== id));
-  };
-
-  const importNalandaRoster = async (teamName: string) => {
-    if (!supabase) return;
-    const trimmedTeam = teamName.trim();
-    if (!trimmedTeam) {
-      alert("Select or set a team name first.");
-      return;
-    }
-
-    const payload = nalandaPlayers.map((playerName) => ({
-      team_name: trimmedTeam,
-      player_name: playerName,
-    }));
-
-    const { error: upsertError } = await supabase
-      .from("team_players")
-      .upsert(payload, { onConflict: "team_name,player_name" });
-
-    if (upsertError) {
-      alert(`Error importing Nalanda roster: ${upsertError.message}`);
-      return;
-    }
-
-    const { data: rosterData, error: rosterError } = await supabase
-      .from("team_players")
-      .select("*")
-      .order("team_name", { ascending: true })
-      .order("player_name", { ascending: true });
-
-    if (rosterError) {
-      alert(`Error reloading roster: ${rosterError.message}`);
-      return;
-    }
-
-    const nextRoster = (rosterData as TeamPlayer[]) || [];
-    setTeamPlayers(nextRoster);
-
-    const syncedPlayers = await ensurePlayerRowsForRoster(players, nextRoster);
-    setPlayers(syncedPlayers);
-    setNewTeamPlayer((prev) => ({ ...prev, team_name: trimmedTeam }));
   };
 
   const pushRecentBall = (prev: string, event: string): string => {
@@ -873,10 +845,11 @@ export default function AdminDashboard() {
       const nextBowlerBalls = currentBowlerBalls + (legalDelivery ? 1 : 0);
       const existingConceded = toBowlerRunsConceded(bowler);
       const runConcededIncrement =
-        selectedExtra === "bye" || selectedExtra === "legbye" ? 0 : runIncrement;
+        selectedExtra === "bye" || selectedExtra === "legbye"
+          ? 0
+          : runIncrement;
       const nextConceded = existingConceded + runConcededIncrement;
-      const wicketCredit =
-        withWicket && selectedWicket !== "run_out" ? 1 : 0;
+      const wicketCredit = withWicket && selectedWicket !== "run_out" ? 1 : 0;
 
       bowler.overs = legalDelivery
         ? incrementOverBall(Number(bowler.overs) || 0)
@@ -904,9 +877,7 @@ export default function AdminDashboard() {
 
     setRecordingDelivery(true);
     const playersSaved = await persistPlayers(nextPlayers);
-    const saved = playersSaved
-      ? await persistMatch(nextDerivedMatch)
-      : false;
+    const saved = playersSaved ? await persistMatch(nextDerivedMatch) : false;
     setRecordingDelivery(false);
 
     if (saved) {
@@ -946,12 +917,17 @@ export default function AdminDashboard() {
         return;
       }
       if (data) {
-        nextPlayers = players.map((p) => (p === player ? (data as PlayerScore) : p));
+        nextPlayers = players.map((p) =>
+          p === player ? (data as PlayerScore) : p,
+        );
         setPlayers(nextPlayers);
       }
     }
 
-    const derived = applyDerivedMatchFields(withSyncedTeamInnings(match), nextPlayers);
+    const derived = applyDerivedMatchFields(
+      withSyncedTeamInnings(match),
+      nextPlayers,
+    );
     await persistMatch(derived);
   };
 
@@ -1000,9 +976,7 @@ export default function AdminDashboard() {
   ].filter((column) => !updatableMatchKeys.includes(column));
 
   const formatLabel = (key: MatchFieldKey) =>
-    key
-      .replace(/_/g, " ")
-      .replace(/\b\w/g, (char) => char.toUpperCase());
+    key.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
 
   const handleMatchPlayerSelect = (
     key: "current_batsman" | "non_striker" | "current_bowler",
@@ -1115,7 +1089,10 @@ export default function AdminDashboard() {
           >
             <option value="">Select Player</option>
             {selectOptions.map((player) => (
-              <option key={`${player.team_name}-${player.player_name}-${player.id}`} value={player.player_name}>
+              <option
+                key={`${player.team_name}-${player.player_name}-${player.id}`}
+                value={player.player_name}
+              >
                 {player.player_name}
               </option>
             ))}
@@ -1138,7 +1115,9 @@ export default function AdminDashboard() {
             className="focus:outline-none transition-all"
             style={{
               ...inputStyles,
-              backgroundColor: isScoreField ? "rgba(0, 0, 0, 0.03)" : inputStyles.backgroundColor,
+              backgroundColor: isScoreField
+                ? "rgba(0, 0, 0, 0.03)"
+                : inputStyles.backgroundColor,
               cursor: isScoreField ? "not-allowed" : "text",
             }}
           />
@@ -1207,8 +1186,14 @@ export default function AdminDashboard() {
                     onClick={() => setSelectedRuns(run)}
                     className="min-w-14 px-5 py-3 rounded-xl border font-black text-lg transition-all"
                     style={{
-                      borderColor: selectedRuns === run ? "var(--primary)" : "var(--border)",
-                      color: selectedRuns === run ? "var(--primary)" : "var(--silver)",
+                      borderColor:
+                        selectedRuns === run
+                          ? "var(--primary)"
+                          : "var(--border)",
+                      color:
+                        selectedRuns === run
+                          ? "var(--primary)"
+                          : "var(--silver)",
                       backgroundColor:
                         selectedRuns === run
                           ? "rgba(128, 0, 32, 0.08)"
@@ -1244,8 +1229,13 @@ export default function AdminDashboard() {
                     className="px-4 py-3 rounded-xl border font-bold text-sm transition-all"
                     style={{
                       borderColor:
-                        selectedExtra === extra.key ? "var(--primary)" : "var(--border)",
-                      color: selectedExtra === extra.key ? "var(--primary)" : "var(--silver)",
+                        selectedExtra === extra.key
+                          ? "var(--primary)"
+                          : "var(--border)",
+                      color:
+                        selectedExtra === extra.key
+                          ? "var(--primary)"
+                          : "var(--silver)",
                       backgroundColor:
                         selectedExtra === extra.key
                           ? "rgba(128, 0, 32, 0.08)"
@@ -1278,7 +1268,9 @@ export default function AdminDashboard() {
                     key={wicket.value}
                     type="button"
                     disabled={recordingDelivery}
-                    onClick={() => setSelectedWicket(wicket.value as WicketType)}
+                    onClick={() =>
+                      setSelectedWicket(wicket.value as WicketType)
+                    }
                     className="px-3 py-2 rounded-lg border text-sm font-semibold transition-all"
                     style={{
                       borderColor:
@@ -1345,9 +1337,7 @@ export default function AdminDashboard() {
               </div>
 
               <div className="mt-4">
-                <label style={labelStyles}>
-                  Commentary (optional)
-                </label>
+                <label style={labelStyles}>Commentary (optional)</label>
                 <input
                   type="text"
                   disabled={recordingDelivery}
@@ -1365,53 +1355,72 @@ export default function AdminDashboard() {
             </section>
 
             <section className="rounded-xl border border-[color:var(--border)] p-5 bg-white/60">
-              <h3 className="text-lg font-black mb-4" style={{ color: "var(--primary)" }}>
+              <h3
+                className="text-lg font-black mb-4"
+                style={{ color: "var(--primary)" }}
+              >
                 Teams & Live Score
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {([
-                  "match_status",
-                  "inning",
-                  "team_a_name",
-                  "team_b_name",
-                  "batting_team",
-                  "runs",
-                  "wickets",
-                  "overs",
-                  "recent_balls",
-                  "team_a_runs",
-                  "team_a_wickets",
-                  "team_a_overs",
-                  "team_b_runs",
-                  "team_b_wickets",
-                  "team_b_overs",
-                ] as MatchFieldKey[]).map((field) => renderMatchField(field))}
+                {(
+                  [
+                    "match_status",
+                    "inning",
+                    "team_a_name",
+                    "team_b_name",
+                    "batting_team",
+                    "runs",
+                    "wickets",
+                    "overs",
+                    "recent_balls",
+                    "team_a_runs",
+                    "team_a_wickets",
+                    "team_a_overs",
+                    "team_b_runs",
+                    "team_b_wickets",
+                    "team_b_overs",
+                  ] as MatchFieldKey[]
+                ).map((field) => renderMatchField(field))}
               </div>
               <div className="mt-6 flex flex-wrap gap-3">
-                <button onClick={() => void handleMatchStart()} className="cta-btn secondary">
+                <button
+                  onClick={() => void handleMatchStart()}
+                  className="cta-btn secondary"
+                >
                   Start Match
                 </button>
-                <button onClick={() => void handleSwapBattingTeam()} className="cta-btn secondary">
+                <button
+                  onClick={() => void handleSwapBattingTeam()}
+                  className="cta-btn secondary"
+                >
                   Swap Batting Team
                 </button>
-                <button onClick={() => void handleMatchEnd()} className="cta-btn secondary">
+                <button
+                  onClick={() => void handleMatchEnd()}
+                  className="cta-btn secondary"
+                >
                   End Match
                 </button>
               </div>
             </section>
 
             <section className="rounded-xl border border-[color:var(--border)] p-5 bg-white/60">
-              <h3 className="text-lg font-black mb-4" style={{ color: "var(--primary)" }}>
+              <h3
+                className="text-lg font-black mb-4"
+                style={{ color: "var(--primary)" }}
+              >
                 Batting Pair
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {([
-                  "current_batsman",
-                  "non_striker",
-                  "current_batsman_stats",
-                  "non_striker_stats",
-                  "partnership",
-                ] as MatchFieldKey[]).map((field) => renderMatchField(field))}
+                {(
+                  [
+                    "current_batsman",
+                    "non_striker",
+                    "current_batsman_stats",
+                    "non_striker_stats",
+                    "partnership",
+                  ] as MatchFieldKey[]
+                ).map((field) => renderMatchField(field))}
               </div>
               <div className="mt-6 flex flex-wrap gap-3">
                 <button
@@ -1421,43 +1430,63 @@ export default function AdminDashboard() {
                   Swap Striker / Non-Striker
                 </button>
               </div>
-              <button onClick={() => void saveMatch()} className="mt-5 cta-btn secondary">
+              <button
+                onClick={() => void saveMatch()}
+                className="mt-5 cta-btn secondary"
+              >
                 Update Data
               </button>
             </section>
 
             <section className="rounded-xl border border-[color:var(--border)] p-5 bg-white/60">
-              <h3 className="text-lg font-black mb-4" style={{ color: "var(--primary)" }}>
+              <h3
+                className="text-lg font-black mb-4"
+                style={{ color: "var(--primary)" }}
+              >
                 Bowler
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {(["current_bowler", "current_bowler_stats"] as MatchFieldKey[]).map(
-                  (field) => renderMatchField(field),
-                )}
+                {(
+                  ["current_bowler", "current_bowler_stats"] as MatchFieldKey[]
+                ).map((field) => renderMatchField(field))}
               </div>
-              <button onClick={() => void saveMatch()} className="mt-5 cta-btn secondary">
+              <button
+                onClick={() => void saveMatch()}
+                className="mt-5 cta-btn secondary"
+              >
                 Update Data
               </button>
             </section>
 
             <section className="rounded-xl border border-[color:var(--border)] p-5 bg-white/60">
-              <h3 className="text-lg font-black mb-4" style={{ color: "var(--primary)" }}>
+              <h3
+                className="text-lg font-black mb-4"
+                style={{ color: "var(--primary)" }}
+              >
                 Series & Match Intro
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {([
-                  "series_name",
-                  "match_logo_url",
-                  "match_description",
-                ] as MatchFieldKey[]).map((field) => renderMatchField(field))}
+                {(
+                  [
+                    "series_name",
+                    "match_logo_url",
+                    "match_description",
+                  ] as MatchFieldKey[]
+                ).map((field) => renderMatchField(field))}
               </div>
-              <button onClick={() => void saveMatch()} className="mt-5 cta-btn secondary">
+              <button
+                onClick={() => void saveMatch()}
+                className="mt-5 cta-btn secondary"
+              >
                 Update Data
               </button>
             </section>
 
             <section className="rounded-xl border border-[color:var(--border)] p-5 bg-white/60">
-              <h3 className="text-lg font-black mb-4" style={{ color: "var(--primary)" }}>
+              <h3
+                className="text-lg font-black mb-4"
+                style={{ color: "var(--primary)" }}
+              >
                 Upcoming Matches
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -1481,7 +1510,10 @@ export default function AdminDashboard() {
                   </div>
                 ))}
               </div>
-              <button onClick={() => void saveMatch()} className="mt-5 cta-btn secondary">
+              <button
+                onClick={() => void saveMatch()}
+                className="mt-5 cta-btn secondary"
+              >
                 Update Data
               </button>
             </section>
@@ -1496,12 +1528,19 @@ export default function AdminDashboard() {
           className="neon-card p-8"
           style={{ backgroundColor: "rgba(255, 255, 255, 0.9)" }}
         >
-          <h2 className="text-2xl font-black mb-5" style={{ color: "var(--primary)" }}>
+          <h2
+            className="text-2xl font-black mb-5"
+            style={{ color: "var(--primary)" }}
+          >
             Team Player Lists
           </h2>
           {missingRosterTable && (
-            <p className="mb-4 text-sm font-semibold" style={{ color: "#b00020" }}>
-              DB schema is missing `team_players`. Run the latest `supabase/schema_update.sql`.
+            <p
+              className="mb-4 text-sm font-semibold"
+              style={{ color: "#b00020" }}
+            >
+              DB schema is missing `team_players`. Run the latest
+              `supabase/schema_update.sql`.
             </p>
           )}
 
@@ -1511,24 +1550,22 @@ export default function AdminDashboard() {
                 key={teamName}
                 className="rounded-xl border border-[color:var(--border)] p-4 bg-white/70"
               >
-                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                  <h3 className="text-lg font-black" style={{ color: "var(--primary)" }}>
-                    {teamName}
-                  </h3>
-                  <button
-                    onClick={() => void importNalandaRoster(teamName)}
-                    className="cta-btn secondary"
-                  >
-                    Import Nalanda Players
-                  </button>
-                </div>
+                <h3
+                  className="text-lg font-black mb-3"
+                  style={{ color: "var(--primary)" }}
+                >
+                  {teamName}
+                </h3>
                 <div className="space-y-2">
                   {getRosterForTeam(teamName).map((row) => (
                     <div
                       key={`${row.team_name}-${row.player_name}-${row.id}`}
                       className="flex items-center justify-between rounded-lg border border-[color:var(--border)] px-3 py-2"
                     >
-                      <span className="font-semibold" style={{ color: "var(--silver)" }}>
+                      <span
+                        className="font-semibold"
+                        style={{ color: "var(--silver)" }}
+                      >
                         {row.player_name}
                       </span>
                       <button
@@ -1554,7 +1591,10 @@ export default function AdminDashboard() {
               style={inputStyles}
               value={newTeamPlayer.team_name}
               onChange={(e) =>
-                setNewTeamPlayer((prev) => ({ ...prev, team_name: e.target.value }))
+                setNewTeamPlayer((prev) => ({
+                  ...prev,
+                  team_name: e.target.value,
+                }))
               }
             >
               <option value="">Select Team</option>
@@ -1568,11 +1608,17 @@ export default function AdminDashboard() {
               style={inputStyles}
               value={newTeamPlayer.player_name}
               onChange={(e) =>
-                setNewTeamPlayer((prev) => ({ ...prev, player_name: e.target.value }))
+                setNewTeamPlayer((prev) => ({
+                  ...prev,
+                  player_name: e.target.value,
+                }))
               }
               placeholder="Player name"
             />
-            <button onClick={() => void addTeamPlayer()} className="cta-btn secondary">
+            <button
+              onClick={() => void addTeamPlayer()}
+              className="cta-btn secondary"
+            >
               Add To Team List
             </button>
           </div>
@@ -1593,7 +1639,8 @@ export default function AdminDashboard() {
               className="cta-btn secondary"
               onClick={() => {
                 const defaultTeam = getTeamOptions()[0] || "";
-                const defaultPlayer = getRosterForTeam(defaultTeam)[0]?.player_name || "";
+                const defaultPlayer =
+                  getRosterForTeam(defaultTeam)[0]?.player_name || "";
                 setPlayers((prev) => [
                   ...prev,
                   {
@@ -1662,18 +1709,24 @@ export default function AdminDashboard() {
                         style={inputStyles}
                         value={player.player_name}
                         onChange={(e) =>
-                          handlePlayerChange(index, "player_name", e.target.value)
+                          handlePlayerChange(
+                            index,
+                            "player_name",
+                            e.target.value,
+                          )
                         }
                       >
                         <option value="">Select Player</option>
-                        {getRosterForTeam(player.team_name).map((rosterPlayer) => (
-                          <option
-                            key={`${rosterPlayer.team_name}-${rosterPlayer.player_name}-${rosterPlayer.id}`}
-                            value={rosterPlayer.player_name}
-                          >
-                            {rosterPlayer.player_name}
-                          </option>
-                        ))}
+                        {getRosterForTeam(player.team_name).map(
+                          (rosterPlayer) => (
+                            <option
+                              key={`${rosterPlayer.team_name}-${rosterPlayer.player_name}-${rosterPlayer.id}`}
+                              value={rosterPlayer.player_name}
+                            >
+                              {rosterPlayer.player_name}
+                            </option>
+                          ),
+                        )}
                       </select>
                     </td>
                     <td className="p-2">
@@ -1782,7 +1835,6 @@ export default function AdminDashboard() {
               </tbody>
             </table>
           </div>
-
         </div>
       </div>
     </div>
