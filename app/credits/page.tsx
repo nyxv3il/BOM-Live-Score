@@ -1,13 +1,23 @@
 import Link from "next/link";
 import Image from "next/image";
 
-const teamMembers = [
-  { name: "Navitha Aken", role: "Frontend Developer" },
-  { name: "Senura Perera", role: "Frontend Developer" },
-  { name: "Gesandu Rajapaksha", role: "Frontend Developer" },
-  { name: "Vidul Batawala", role: "Backend Developer" },
-  { name: "Dulina Duljaya", role: "Backend Developer" },
-  { name: "Yesith Sankalpa", role: "Backend Developer" },
+const players = [
+  { name: "Osanda Pamuditha" },
+  { name: "Nadul Jayalath" },
+  { name: "Lithum Wijekuamara" },
+  { name: "Ranmith Dinuwara" },
+  { name: "Mihin Zoysa" },
+  { name: "Dunitha Anusara" },
+  { name: "Sahash Godage" },
+  { name: "Hasith Rathnayake" },
+  { name: "Sadew Wijesekara" },
+  { name: "Nemidu Akmeemana" },
+  { name: "Omith Rathnayake" },
+  { name: "Methuka Perera" },
+  { name: "Dunal Yenuka" },
+  { name: "Thiviru Ranasinghe" },
+  { name: "Gevindu Manamper" },
+  { name: "Malsha Fernando" },
 ];
 
 export default function CreditsPage() {
@@ -41,21 +51,21 @@ export default function CreditsPage() {
           <i className="fas fa-users"></i> credits
         </div>
         <h1 className="hero-heading mb-4 text-[color:var(--primary)]">
-          Developer Team
+          Nalanda College Player List
         </h1>
-        <p className="text-[color:var(--muted)]">
-          This platform was built and maintained by the following team.
-        </p>
+        <p className="text-[color:var(--muted)]">Official squad list.</p>
       </section>
 
       <section className="grid gap-4">
-        {teamMembers.map((member) => (
+        {players.map((player) => (
           <article
-            key={member.name}
+            key={player.name}
             className="neon-card flex flex-col gap-2 p-5 md:flex-row md:items-center md:justify-between"
           >
-            <h2 className="text-xl font-bold">{member.name}</h2>
-            <p className="text-[color:var(--muted)]">{member.role}</p>
+            <h2 className="text-xl font-bold">{player.name}</h2>
+            <p className="text-[color:var(--muted)]">
+              {player.role ?? "Player"}
+            </p>
           </article>
         ))}
       </section>

@@ -172,6 +172,25 @@ const newPlayerRow: PlayerScore = {
   economy: 0,
 };
 
+const nalandaPlayers = [
+  "Osanda Pamuditha",
+  "Nadul Jayalath",
+  "Lithum Wijekuamara",
+  "Ranmith Dinuwara",
+  "Mihin Zoysa",
+  "Dunitha Anusara",
+  "Sahash Godage",
+  "Hasith Rathnayake",
+  "Sadew Wijesekara",
+  "Nemidu Akmeemana",
+  "Omith Rathnayake",
+  "Methuka Perera",
+  "Dunal Yenuka",
+  "Thiviru Ranasinghe",
+  "Gevindu Manamper",
+  "Malsha Fernando",
+];
+
 export default function AdminDashboard() {
   const [match, setMatch] = useState<MatchState>(defaultMatch);
   const [players, setPlayers] = useState<PlayerScore[]>([]);
@@ -703,6 +722,47 @@ export default function AdminDashboard() {
     }
 
     setTeamPlayers((prev) => prev.filter((row) => row.id !== id));
+  };
+
+  const importNalandaRoster = async (teamName: string) => {
+    if (!supabase) return;
+    const trimmedTeam = teamName.trim();
+    if (!trimmedTeam) {
+      alert("Select or set a team name first.");
+      return;
+    }
+
+    const payload = nalandaPlayers.map((playerName) => ({
+      team_name: trimmedTeam,
+      player_name: playerName,
+    }));
+
+    const { error: upsertError } = await supabase
+      .from("team_players")
+      .upsert(payload, { onConflict: "team_name,player_name" });
+
+    if (upsertError) {
+      alert(`Error importing Nalanda roster: ${upsertError.message}`);
+      return;
+    }
+
+    const { data: rosterData, error: rosterError } = await supabase
+      .from("team_players")
+      .select("*")
+      .order("team_name", { ascending: true })
+      .order("player_name", { ascending: true });
+
+    if (rosterError) {
+      alert(`Error reloading roster: ${rosterError.message}`);
+      return;
+    }
+
+    const nextRoster = (rosterData as TeamPlayer[]) || [];
+    setTeamPlayers(nextRoster);
+
+    const syncedPlayers = await ensurePlayerRowsForRoster(players, nextRoster);
+    setPlayers(syncedPlayers);
+    setNewTeamPlayer((prev) => ({ ...prev, team_name: trimmedTeam }));
   };
 
   const pushRecentBall = (prev: string, event: string): string => {
@@ -1451,9 +1511,17 @@ export default function AdminDashboard() {
                 key={teamName}
                 className="rounded-xl border border-[color:var(--border)] p-4 bg-white/70"
               >
-                <h3 className="text-lg font-black mb-3" style={{ color: "var(--primary)" }}>
-                  {teamName}
-                </h3>
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="text-lg font-black" style={{ color: "var(--primary)" }}>
+                    {teamName}
+                  </h3>
+                  <button
+                    onClick={() => void importNalandaRoster(teamName)}
+                    className="cta-btn secondary"
+                  >
+                    Import Nalanda Players
+                  </button>
+                </div>
                 <div className="space-y-2">
                   {getRosterForTeam(teamName).map((row) => (
                     <div
