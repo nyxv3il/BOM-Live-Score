@@ -30,9 +30,6 @@ export default function Navbar() {
           <Link href="/credits" className="nav-link">
             Credits
           </Link>
-          <Link href="/admin/dashboard" className="nav-link">
-            Admin
-          </Link>
         </div>
         <div className="md:hidden">
           <button
@@ -75,9 +72,6 @@ export default function Navbar() {
             </Link>
             <Link href="/credits" className="nav-link">
               Credits
-            </Link>
-            <Link href="/admin/dashboard" className="nav-link">
-              Admin
             </Link>
           </div>
         </div>
