@@ -24,9 +24,9 @@ export default function Navbar() {
           <Link href="/" className="nav-link">
             Home
           </Link>
-          <Link href="/summary" className="nav-link">
+          {/* <Link href="/summary" className="nav-link">
             Summary
-          </Link>
+          </Link> */}
           <Link href="/credits" className="nav-link">
             Credits
           </Link>
