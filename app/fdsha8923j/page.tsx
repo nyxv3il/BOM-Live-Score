@@ -1129,7 +1129,6 @@ export default function AdminDashboard() {
 
   return (
     <>
-      <ViewerCount />
       <div className="min-h-screen py-10 px-4 mt-4">
         <div className="mx-auto w-full max-w-6xl space-y-8">
           <h1

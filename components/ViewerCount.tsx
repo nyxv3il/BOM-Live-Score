@@ -33,7 +33,7 @@ export default function ViewerCount() {
   if (count === null) return null;
 
   return (
-    <div className="meta-chip heh">
+    <div className="meta-chip fixed bottom-6 left-6 z-40">
       <i className="fas fa-circle text-green-500 text-xs animate-pulse"></i>
       {count}
     </div>

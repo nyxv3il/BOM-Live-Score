@@ -174,9 +174,7 @@ export default function ScoreBoard() {
   const overGroups = getOverGroups(recentBalls);
   const latestOverIndex = overGroups.length - 1;
   const normalizedOverOffset =
-    latestOverIndex >= 0
-      ? Math.min(recentOverOffset, latestOverIndex)
-      : 0;
+    latestOverIndex >= 0 ? Math.min(recentOverOffset, latestOverIndex) : 0;
   const activeOverIndex =
     latestOverIndex >= 0 ? latestOverIndex - normalizedOverOffset : -1;
   const activeOverBalls =
@@ -192,8 +190,12 @@ export default function ScoreBoard() {
   };
   const getCurrentOverBalls = (allBalls: string[]): string[] => {
     const boundaryIndex = allBalls.lastIndexOf("|");
-    const tail = allBalls.slice(boundaryIndex + 1).filter((ball) => ball !== "|");
-    const currentOverLegalBalls = getLegalBallCountFromOvers(Number(match.overs) || 0);
+    const tail = allBalls
+      .slice(boundaryIndex + 1)
+      .filter((ball) => ball !== "|");
+    const currentOverLegalBalls = getLegalBallCountFromOvers(
+      Number(match.overs) || 0,
+    );
 
     if (currentOverLegalBalls <= 0) return tail;
 
@@ -524,7 +526,9 @@ export default function ScoreBoard() {
                   className="h-9 w-9 rounded-full border border-[color:var(--border)] text-[color:var(--primary)] disabled:opacity-40"
                   disabled={activeOverIndex <= 0}
                   onClick={() =>
-                    setRecentOverOffset((prev) => Math.min(prev + 1, latestOverIndex))
+                    setRecentOverOffset((prev) =>
+                      Math.min(prev + 1, latestOverIndex),
+                    )
                   }
                   aria-label="Show previous over"
                 >
@@ -543,7 +547,9 @@ export default function ScoreBoard() {
                   type="button"
                   className="h-9 w-9 rounded-full border border-[color:var(--border)] text-[color:var(--primary)] disabled:opacity-40"
                   disabled={activeOverIndex >= latestOverIndex}
-                  onClick={() => setRecentOverOffset((prev) => Math.max(prev - 1, 0))}
+                  onClick={() =>
+                    setRecentOverOffset((prev) => Math.max(prev - 1, 0))
+                  }
                   aria-label="Show next over"
                 >
                   <i className="fas fa-chevron-right"></i>

@@ -39,6 +39,7 @@ export default function RootLayout({
       <body className={`${ibmPlexSans.variable} antialiased`}>
         <div className="app-shell min-h-screen flex flex-col">
           <Navbar />
+          <ViewerCount />
           <main className="flex-1">{children}</main>
           <footer className="site-footer">
             <div className="site-footer__inner">
