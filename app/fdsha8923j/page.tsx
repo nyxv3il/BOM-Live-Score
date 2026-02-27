@@ -1111,7 +1111,6 @@ export default function AdminDashboard() {
             type="text"
             value={value}
             onChange={handleMatchChange}
-            readOnly={isScoreField}
             className="focus:outline-none transition-all"
             style={{
               ...inputStyles,
