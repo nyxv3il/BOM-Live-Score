@@ -1020,22 +1020,21 @@ export default function AdminDashboard() {
   const renderMatchField = (key: MatchFieldKey) => {
     const value = String(match[key] ?? "");
     const isLongText = key === "match_description";
-    // const isScoreField =
-    //   key === "runs" ||
-    //   key === "wickets" ||
-    //   key === "overs" ||
-    //   key === "recent_balls" ||
-    //   key === "team_a_runs" ||
-    //   key === "team_a_wickets" ||
-    //   key === "team_a_overs" ||
-    //   key === "team_b_runs" ||
-    //   key === "team_b_wickets" ||
-    //   key === "team_b_overs" ||
-    //   key === "partnership" ||
-    //   key === "current_batsman_stats" ||
-    //   key === "non_striker_stats" ||
-    //   key === "current_bowler_stats";
-    const isScoreField = key === "";
+    const isScoreField =
+      key === "runs" ||
+      key === "wickets" ||
+      key === "overs" ||
+      key === "recent_balls" ||
+      key === "team_a_runs" ||
+      key === "team_a_wickets" ||
+      key === "team_a_overs" ||
+      key === "team_b_runs" ||
+      key === "team_b_wickets" ||
+      key === "team_b_overs" ||
+      key === "partnership" ||
+      key === "current_batsman_stats" ||
+      key === "non_striker_stats" ||
+      key === "current_bowler_stats";
     const battingRoster = getRosterForTeam(match.batting_team);
     const bowlingRoster = getRosterForTeam(getBowlingTeam(match));
     const isBatterSelect = key === "current_batsman" || key === "non_striker";
@@ -1117,9 +1116,9 @@ export default function AdminDashboard() {
             style={{
               ...inputStyles,
               backgroundColor: isScoreField
-                ? "rgba(0, 0, 0, 0.03)"
+                ? inputStyles.backgroundColor
                 : inputStyles.backgroundColor,
-              cursor: isScoreField ? "not-allowed" : "text",
+              cursor: isScoreField ? "text" : "text",
             }}
           />
         )}
