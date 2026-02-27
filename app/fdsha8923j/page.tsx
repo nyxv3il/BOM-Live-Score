@@ -1361,7 +1361,7 @@ export default function AdminDashboard() {
                   className="text-lg font-black mb-4"
                   style={{ color: "var(--primary)" }}
                 >
-                  Teams & Live Score
+                  Teams
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   {(
@@ -1371,16 +1371,6 @@ export default function AdminDashboard() {
                       "team_a_name",
                       "team_b_name",
                       "batting_team",
-                      "runs",
-                      "wickets",
-                      "overs",
-                      "recent_balls",
-                      "team_a_runs",
-                      "team_a_wickets",
-                      "team_a_overs",
-                      "team_b_runs",
-                      "team_b_wickets",
-                      "team_b_overs",
                     ] as MatchFieldKey[]
                   ).map((field) => renderMatchField(field))}
                 </div>
@@ -1476,6 +1466,38 @@ export default function AdminDashboard() {
                       "series_name",
                       "match_logo_url",
                       "match_description",
+                    ] as MatchFieldKey[]
+                  ).map((field) => renderMatchField(field))}
+                </div>
+                <button
+                  onClick={() => void saveMatch()}
+                  className="mt-5 cta-btn secondary"
+                >
+                  Update Data
+                </button>
+              </section>
+
+              <section className="rounded-xl border border-[color:var(--border)] p-5 bg-white/60">
+                <h3
+                  className="text-lg font-black mb-4"
+                  style={{ color: "var(--primary)" }}
+                >
+                  Advanced ⚠️
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {(
+                    [
+                      "runs",
+                      "wickets",
+                      "overs",
+                      "recent_balls",
+                      "team_a_runs",
+                      "team_a_wickets",
+                      "team_a_overs",
+                      "team_b_runs",
+                      "team_b_wickets",
+                      "team_b_overs",
+                      "partnership",
                     ] as MatchFieldKey[]
                   ).map((field) => renderMatchField(field))}
                 </div>
