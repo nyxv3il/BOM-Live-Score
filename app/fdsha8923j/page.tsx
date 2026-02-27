@@ -898,10 +898,11 @@ export default function AdminDashboard() {
     let nextPlayers = players;
 
     if (player.id) {
+      const { id, ...payload } = player; // ← add this destructure
       const { error } = await supabase
         .from("player_scores")
-        .update(player)
-        .eq("id", player.id);
+        .update(payload) // ← use payload, not player
+        .eq("id", id as number);
       if (error) {
         alert(`Error updating player: ${error.message}`);
         return;
