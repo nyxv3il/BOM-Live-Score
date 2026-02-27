@@ -26,7 +26,7 @@ export default function ViewerCount() {
       });
 
     return () => {
-      supabase.removeChannel(channel);
+      if (supabase) supabase.removeChannel(channel);
     };
   }, []);
 
