@@ -1111,14 +1111,13 @@ export default function AdminDashboard() {
             type="text"
             value={value}
             onChange={handleMatchChange}
-            readOnly={isScoreField}
             className="focus:outline-none transition-all"
             style={{
               ...inputStyles,
               backgroundColor: isScoreField
-                ? "rgba(0, 0, 0, 0.03)"
+                ? inputStyles.backgroundColor
                 : inputStyles.backgroundColor,
-              cursor: isScoreField ? "not-allowed" : "text",
+              cursor: isScoreField ? "text" : "text",
             }}
           />
         )}
