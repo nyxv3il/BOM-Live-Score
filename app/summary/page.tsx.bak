@@ -19,14 +19,64 @@ type PlayerRow = {
 };
 
 const fallbackRows: PlayerRow[] = [
-  { id: 1, team_name: "School A", player_name: "Dilan Perera", runs: 76, balls: 64, fours: 8, sixes: 2, strike_rate: 118.75, wickets: 0, overs: 0, economy: 0 },
-  { id: 2, team_name: "School A", player_name: "Sahan Rodrigo", runs: 44, balls: 51, fours: 3, sixes: 1, strike_rate: 86.27, wickets: 0, overs: 0, economy: 0 },
-  { id: 3, team_name: "School B", player_name: "Raveen Silva", runs: 68, balls: 59, fours: 7, sixes: 2, strike_rate: 115.25, wickets: 1, overs: 4, economy: 7.25 },
-  { id: 4, team_name: "School B", player_name: "Pasindu Liyanage", runs: 18, balls: 15, fours: 2, sixes: 0, strike_rate: 120, wickets: 3, overs: 4, economy: 5.5 },
+  {
+    id: 1,
+    team_name: "School A",
+    player_name: "Dilan Perera",
+    runs: 76,
+    balls: 64,
+    fours: 8,
+    sixes: 2,
+    strike_rate: 118.75,
+    wickets: 0,
+    overs: 0,
+    economy: 0,
+  },
+  {
+    id: 2,
+    team_name: "School A",
+    player_name: "Sahan Rodrigo",
+    runs: 44,
+    balls: 51,
+    fours: 3,
+    sixes: 1,
+    strike_rate: 86.27,
+    wickets: 0,
+    overs: 0,
+    economy: 0,
+  },
+  {
+    id: 3,
+    team_name: "School B",
+    player_name: "Raveen Silva",
+    runs: 68,
+    balls: 59,
+    fours: 7,
+    sixes: 2,
+    strike_rate: 115.25,
+    wickets: 1,
+    overs: 4,
+    economy: 7.25,
+  },
+  {
+    id: 4,
+    team_name: "School B",
+    player_name: "Pasindu Liyanage",
+    runs: 18,
+    balls: 15,
+    fours: 2,
+    sixes: 0,
+    strike_rate: 120,
+    wickets: 3,
+    overs: 4,
+    economy: 5.5,
+  },
 ];
 
 export default function SummaryPage() {
-  const [players, setPlayers] = useState<PlayerRow[]>(supabase ? [] : fallbackRows);
+  const [players, setPlayers] = useState<PlayerRow[]>(
+    supabase ? [] : fallbackRows,
+  );
 
   useEffect(() => {
     const client = supabase;
@@ -71,14 +121,23 @@ export default function SummaryPage() {
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-10 md:py-14">
       <section className="mb-8 text-center">
-        <div className="hero-pill mb-4"><i className="fas fa-chart-line"></i> series summary</div>
-        <h1 className="hero-heading mb-3 text-[color:var(--primary)]">Match Series Details</h1>
+        <div className="hero-pill mb-4">
+          <i className="fas fa-chart-line"></i> series summary
+        </div>
+        <h1 className="hero-heading mb-3 text-[color:var(--primary)]">
+          Match Series Details
+        </h1>
       </section>
 
       <section className="mb-10 grid gap-6 lg:grid-cols-2">
         {Object.entries(grouped).map(([team, rows]) => (
-          <article className="rounded-2xl border border-[color:var(--border)] bg-white/70 p-4 shadow-sm" key={team}>
-            <h2 className="mb-4 text-2xl font-bold text-[color:var(--primary)]">{team}</h2>
+          <article
+            className="rounded-2xl border border-[color:var(--border)] bg-white/70 p-4 shadow-sm"
+            key={team}
+          >
+            <h2 className="mb-4 text-2xl font-bold text-[color:var(--primary)]">
+              {team}
+            </h2>
 
             <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[color:var(--primary)]/80">
               Batters
@@ -104,10 +163,19 @@ export default function SummaryPage() {
                         player.fours > 0 ||
                         player.sixes > 0,
                     )
-                    .sort((a, b) => b.runs - a.runs || a.player_name.localeCompare(b.player_name))
+                    .sort(
+                      (a, b) =>
+                        b.runs - a.runs ||
+                        a.player_name.localeCompare(b.player_name),
+                    )
                     .map((player) => (
-                      <tr key={`bat-${player.id}`} className="border-t border-[color:var(--border)]/70">
-                        <td className="px-4 py-3 font-semibold">{player.player_name}</td>
+                      <tr
+                        key={`bat-${player.id}`}
+                        className="border-t border-[color:var(--border)]/70"
+                      >
+                        <td className="px-4 py-3 font-semibold">
+                          {player.player_name}
+                        </td>
                         <td className="px-4 py-3">{player.runs}</td>
                         <td className="px-4 py-3">{player.balls}</td>
                         <td className="px-4 py-3">{player.fours}</td>
@@ -136,12 +204,21 @@ export default function SummaryPage() {
                   {rows
                     .filter(
                       (player) =>
-                        player.overs > 0 || player.wickets > 0 || player.economy > 0,
+                        player.overs > 0 ||
+                        player.wickets > 0 ||
+                        player.economy > 0,
                     )
-                    .sort((a, b) => b.wickets - a.wickets || a.economy - b.economy)
+                    .sort(
+                      (a, b) => b.wickets - a.wickets || a.economy - b.economy,
+                    )
                     .map((player) => (
-                      <tr key={`bowl-${player.id}`} className="border-t border-[color:var(--border)]/70">
-                        <td className="px-4 py-3 font-semibold">{player.player_name}</td>
+                      <tr
+                        key={`bowl-${player.id}`}
+                        className="border-t border-[color:var(--border)]/70"
+                      >
+                        <td className="px-4 py-3 font-semibold">
+                          {player.player_name}
+                        </td>
                         <td className="px-4 py-3">{player.wickets}</td>
                         <td className="px-4 py-3">{player.overs}</td>
                         <td className="px-4 py-3">{player.economy}</td>
@@ -155,7 +232,9 @@ export default function SummaryPage() {
       </section>
 
       <section className="flex justify-center">
-        <Link href="/" className="cta-btn secondary">Back to Live Match</Link>
+        <Link href="/" className="cta-btn secondary">
+          Back to Live Match
+        </Link>
       </section>
     </main>
   );
