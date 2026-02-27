@@ -164,6 +164,11 @@ a {
   gap: 0.5rem;
 }
 
+.meta-chip.heh {
+  margin-left: 48%;
+  margin-top: 1rem;
+}
+
 .cta-btn {
   border-radius: 999px;
   padding: 0.9rem 2rem;

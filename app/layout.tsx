@@ -3,6 +3,7 @@ import { IBM_Plex_Sans } from "next/font/google";
 import Image from "next/image";
 import "./globals.css";
 import Navbar from "../components/Navbar";
+import ViewerCount from "@/components/ViewerCount";
 
 const ibmPlexSans = IBM_Plex_Sans({
   variable: "--font-ibm-plex-sans",
